@@ -7,6 +7,7 @@ interface RoomPanelProps {
   rooms: Room[];
   resources: Resources;
   unlockedRooms: RoomType[];
+  unlockedUpgrades: Record<RoomType, number>;
   residents: Resident[];
   onBuildRoom: (roomType: RoomType) => void;
   onUpgradeRoom: (roomId: string) => void;
@@ -15,10 +16,38 @@ interface RoomPanelProps {
   onUnassignWorker?: (residentId: string) => void;
 }
 
-const RoomPanel: React.FC<RoomPanelProps> = ({ rooms, resources, unlockedRooms, residents, onBuildRoom, onUpgradeRoom, onCancelBuild, onAssignWorker, onUnassignWorker }) => {
+const RoomPanel: React.FC<RoomPanelProps> = ({ rooms, resources, unlockedRooms, unlockedUpgrades, residents, onBuildRoom, onUpgradeRoom, onCancelBuild, onAssignWorker, onUnassignWorker }) => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(['all', '资源生产', '功能设施', '居住设施', '存储设施']));
+
+  const getRelevantSkill = (roomType: Room['type'], resident: Resident): number => {
+    const skillMapping = {
+      farm: resident.skills.management,
+      water_plant: resident.skills.engineering,
+      power_station: resident.skills.engineering,
+      workshop: resident.skills.engineering,
+      workbench: resident.skills.engineering,
+      quarters: resident.skills.management,
+      medical: resident.skills.medical,
+      basic_laboratory: resident.skills.research,
+      laboratory: resident.skills.research,
+      armory: resident.skills.combat,
+      training_room: resident.skills.combat,
+      warehouse: resident.skills.management,
+      water_tank: resident.skills.engineering,
+      power_bank: resident.skills.engineering,
+      vault: resident.skills.management,
+    };
+    return skillMapping[roomType] || 1;
+  };
+
+  const getJobMatchScore = (room: Room, resident: Resident): number => {
+    const skill = getRelevantSkill(room.type, resident);
+    const happinessBonus = resident.happiness >= 70 ? 0.2 : 0;
+    const healthBonus = resident.health >= 80 ? 0.1 : 0;
+    return skill + happinessBonus + healthBonus;
+  };
 
   const roomTypes: { type: RoomType; name: string; icon: string; description: string; category: string }[] = [
     { type: 'farm', name: '农场', icon: '🌾', description: '生产食物维持居民生存', category: '资源生产' },
@@ -28,7 +57,8 @@ const RoomPanel: React.FC<RoomPanelProps> = ({ rooms, resources, unlockedRooms, 
     { type: 'workbench', name: '工作台', icon: '🔨', description: '基础组件制造，入门级设施', category: '资源生产' },
     { type: 'quarters', name: '宿舍', icon: '🏠', description: '增加人口上限，每级+4人口', category: '居住设施' },
     { type: 'medical', name: '医疗室', icon: '🏥', description: '治疗伤病制造药物', category: '功能设施' },
-    { type: 'laboratory', name: '实验室', icon: '🧪', description: '生产研究点，解锁新科技', category: '功能设施' },
+    { type: 'basic_laboratory', name: '研究台', icon: '🔬', description: '基础研究设施，生产少量研究点', category: '功能设施' },
+    { type: 'laboratory', name: '高级实验室', icon: '🧪', description: '高效研究设施，生产大量研究点', category: '功能设施' },
     { type: 'armory', name: '军械库', icon: '🔫', description: '制造武器和军用组件', category: '功能设施' },
     { type: 'training_room', name: '训练室', icon: '💪', description: '提升居民战斗技能', category: '功能设施' },
     { type: 'warehouse', name: '仓库', icon: '📦', description: '增加食物、材料、组件存储上限', category: '存储设施' },
@@ -110,6 +140,7 @@ const RoomPanel: React.FC<RoomPanelProps> = ({ rooms, resources, unlockedRooms, 
       workbench: { materials: 40 },
       quarters: { materials: 30 },
       medical: { materials: 70, components: 15 },
+      basic_laboratory: { materials: 50, components: 5 },
       laboratory: { materials: 100, components: 15, chemicals: 10 },
       armory: { materials: 90, components: 15 },
       training_room: { materials: 60, components: 10 },
@@ -192,11 +223,23 @@ const RoomPanel: React.FC<RoomPanelProps> = ({ rooms, resources, unlockedRooms, 
                             <option value="">选择空闲居民...</option>
                             {residents
                               .filter(resident => !resident.isWorking)
-                              .map(resident => (
-                                <option key={resident.id} value={resident.id}>
-                                  {resident.name}
-                                </option>
-                              ))}
+                              .sort((a, b) => {
+                                const matchScoreA = getJobMatchScore(room, a);
+                                const matchScoreB = getJobMatchScore(room, b);
+                                return matchScoreB - matchScoreA;
+                              })
+                              .map(resident => {
+                                const skill = getRelevantSkill(room.type, resident);
+                                const matchScore = getJobMatchScore(room, resident);
+                                const isRecommended = skill >= 7;
+                                
+                                return (
+                                  <option key={resident.id} value={resident.id}>
+                                    {isRecommended ? '★ ' : ''}{resident.name} 
+                                    (技能:{skill} 匹配:{matchScore.toFixed(1)})
+                                  </option>
+                                );
+                              })}
                           </select>
                         </div>
                       )}
@@ -259,10 +302,10 @@ const RoomPanel: React.FC<RoomPanelProps> = ({ rooms, resources, unlockedRooms, 
                     <button
                       className="upgrade-button"
                       onClick={() => onUpgradeRoom(room.id)}
-                      disabled={!canAffordCost(resources, room.upgradeCost)}
-                      title="升级设施"
+                      disabled={!canAffordCost(resources, room.upgradeCost) || room.level >= (unlockedUpgrades[room.type] || 1)}
+                      title={room.level >= (unlockedUpgrades[room.type] || 1) ? "需要研究更高级技术才能继续升级" : "升级设施"}
                     >
-                      升级
+                      {room.level >= (unlockedUpgrades[room.type] || 1) ? "需要解锁" : "升级"}
                     </button>
                   </div>
                 )}

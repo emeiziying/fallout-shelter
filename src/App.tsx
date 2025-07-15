@@ -5,6 +5,7 @@ import RoomPanel from './components/RoomPanel';
 import ResidentPanel from './components/ResidentPanel';
 import TechnologyPanel from './components/TechnologyPanel';
 import GameStats from './components/GameStats';
+import SavePanel from './components/SavePanel';
 import './App.css';
 
 function App() {
@@ -21,9 +22,12 @@ function App() {
     getRecruitmentCost, 
     canRecruitResident,
     startResearch,
-    canStartResearch
+    canStartResearch,
+    saveGame,
+    loadGame,
+    autoSaveCountdown
   } = useGameState();
-  const [activeTab, setActiveTab] = useState<'overview' | 'rooms' | 'residents' | 'technology'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'rooms' | 'residents' | 'technology' | 'save'>('overview');
 
   const handleBuildRoom = (roomType: any) => {
     const availableForBuilding = gameState.residents.filter(r => !r.assignedRoom);
@@ -39,6 +43,13 @@ function App() {
 
   return (
     <div className="App">
+      <div className="top-status-bar">
+        <div className="autosave-indicator">
+          <span className="autosave-text">自动保存</span>
+          <span className="autosave-countdown">{autoSaveCountdown}s</span>
+        </div>
+      </div>
+
       {notification && (
         <div className="notification">
           {notification}
@@ -71,6 +82,12 @@ function App() {
           >
             科技研发
           </button>
+          <button 
+            className={activeTab === 'save' ? 'tab-active' : 'tab'}
+            onClick={() => setActiveTab('save')}
+          >
+            存档管理
+          </button>
         </div>
       </header>
 
@@ -90,6 +107,7 @@ function App() {
             rooms={gameState.rooms}
             resources={gameState.resources}
             unlockedRooms={gameState.unlockedRooms}
+            unlockedUpgrades={gameState.unlockedUpgrades}
             residents={gameState.residents}
             onBuildRoom={handleBuildRoom}
             onUpgradeRoom={upgradeRoom}
@@ -118,6 +136,13 @@ function App() {
             activeResearch={gameState.activeResearch}
             onStartResearch={startResearch}
             canStartResearch={canStartResearch}
+          />
+        )}
+
+        {activeTab === 'save' && (
+          <SavePanel
+            onSaveGame={saveGame}
+            onLoadGame={loadGame}
           />
         )}
       </main>

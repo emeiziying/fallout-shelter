@@ -18,6 +18,26 @@ const TechnologyPanel: React.FC<TechnologyPanelProps> = ({
   onStartResearch, 
   canStartResearch 
 }) => {
+  const getRoomName = (roomType: string): string => {
+    const names: Record<string, string> = {
+      farm: '农场',
+      water_plant: '净水厂', 
+      power_station: '发电站',
+      workshop: '工坊',
+      workbench: '工作台',
+      quarters: '宿舍',
+      medical: '医疗室',
+      basic_laboratory: '研究台',
+      laboratory: '高级实验室',
+      armory: '军械库',
+      training_room: '训练室',
+      warehouse: '仓库',
+      water_tank: '蓄水池',
+      power_bank: '储能站',
+      vault: '金库',
+    };
+    return names[roomType] || roomType;
+  };
   const getStatusColor = (tech: Technology) => {
     if (tech.isResearched) return '#4CAF50';
     if (tech.isResearching) return '#FF9800';
@@ -134,7 +154,7 @@ const TechnologyPanel: React.FC<TechnologyPanelProps> = ({
                 <div className="unlocks-list">
                   {tech.unlocks.map(unlock => (
                     <span key={unlock} className="unlock-item">
-                      {unlock}
+                      {getRoomName(unlock)}
                     </span>
                   ))}
                 </div>

@@ -65,6 +65,7 @@ export type RoomType =
   | 'workbench'
   | 'quarters'
   | 'medical'
+  | 'basic_laboratory'
   | 'laboratory'
   | 'armory'
   | 'training_room'
@@ -88,7 +89,7 @@ export interface Technology {
 }
 
 export interface TechEffect {
-  type: 'production_bonus' | 'resource_efficiency' | 'unlock_room' | 'unlock_tech';
+  type: 'production_bonus' | 'resource_efficiency' | 'unlock_room' | 'unlock_tech' | 'unlock_upgrade';
   target: string;
   value: number;
 }
@@ -101,10 +102,33 @@ export interface GameState {
   rooms: Room[];
   technologies: Technology[];
   unlockedRooms: RoomType[];
+  unlockedUpgrades: Record<RoomType, number>;
   activeResearch?: string;
   gameTime: number;
   lastUpdate: number;
   shelterLevel: number;
   population: number;
   maxPopulation: number;
+}
+
+export interface SaveGame {
+  id: string;
+  name: string;
+  timestamp: number;
+  version: string;
+  gameState: GameState;
+  metadata: {
+    playTime: number;
+    population: number;
+    shelterLevel: number;
+    totalResources: number;
+  };
+}
+
+export interface SaveSlot {
+  id: number;
+  name: string;
+  isEmpty: boolean;
+  saveGame?: SaveGame;
+  lastSaved?: number;
 }

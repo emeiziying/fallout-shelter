@@ -1,10 +1,19 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { GameState, Resources, Room, Resident } from '../types';
 import { initialGameState } from '../data/initialState';
 import { calculateResourceProduction, calculateResourceLimits, calculateMaxPopulation } from '../utils/gameLogic';
+import { saveService } from '../services/saveService';
 
 export const useGameState = () => {
-  const [gameState, setGameState] = useState<GameState>(initialGameState);
+  const [gameState, setGameState] = useState<GameState>(() => {
+    // 尝试加载自动存档
+    const autoSave = saveService.loadGame(0);
+    return autoSave || initialGameState;
+  });
+
+  // 使用ref保存最新的游戏状态
+  const gameStateRef = useRef(gameState);
+  gameStateRef.current = gameState;
 
   const updateResources = useCallback((deltaTime: number) => {
     setGameState(prevState => {
@@ -93,10 +102,21 @@ export const useGameState = () => {
 
       // 应用科技效果
       let newUnlockedRooms = [...prevState.unlockedRooms];
+      let newUnlockedUpgrades = { ...prevState.unlockedUpgrades };
       if (completedTech) {
         completedTech.unlocks.forEach(roomType => {
           if (!newUnlockedRooms.includes(roomType as any)) {
             newUnlockedRooms.push(roomType as any);
+          }
+        });
+        
+        // 处理升级解锁效果
+        completedTech.effects.forEach(effect => {
+          if (effect.type === 'unlock_upgrade') {
+            const roomType = effect.target as keyof typeof newUnlockedUpgrades;
+            if (newUnlockedUpgrades[roomType]) {
+              newUnlockedUpgrades[roomType] = Math.max(newUnlockedUpgrades[roomType], effect.value);
+            }
           }
         });
       }
@@ -124,6 +144,7 @@ export const useGameState = () => {
         rooms: updatedRooms,
         technologies: updatedTechnologies,
         unlockedRooms: newUnlockedRooms,
+        unlockedUpgrades: newUnlockedUpgrades,
         activeResearch: completedTech ? undefined : prevState.activeResearch,
         maxPopulation: maxPopulation,
         resources: newResources,
@@ -245,6 +266,10 @@ export const useGameState = () => {
     setGameState(prevState => {
       const room = prevState.rooms.find(r => r.id === roomId);
       if (!room || room.isBuilding) return prevState;
+
+      // 检查升级等级是否解锁
+      const maxUpgradeLevel = prevState.unlockedUpgrades[room.type] || 1;
+      if (room.level >= maxUpgradeLevel) return prevState;
 
       // 检查是否能负担升级成本
       const canAfford = Object.entries(room.upgradeCost).every(
@@ -457,6 +482,61 @@ export const useGameState = () => {
     return prereqsMet && canAfford;
   }, [gameState.technologies, gameState.activeResearch, gameState.resources]);
 
+  // 手动保存游戏
+  const saveGame = useCallback((slotId: number = 1, saveName?: string) => {
+    return saveService.saveGame(gameState, slotId, saveName);
+  }, [gameState]);
+
+  // 加载游戏
+  const loadGame = useCallback((slotId: number) => {
+    const loadedState = saveService.loadGame(slotId);
+    if (loadedState) {
+      setGameState(loadedState);
+      return true;
+    }
+    return false;
+  }, []);
+
+  // 自动保存功能和倒计时 (测试用5秒间隔)
+  const [autoSaveCountdown, setAutoSaveCountdown] = useState(5);
+
+  useEffect(() => {
+    // 倒计时更新
+    const countdownInterval = setInterval(() => {
+      setAutoSaveCountdown(prev => {
+        if (prev <= 1) {
+          return 5; // 重置倒计时
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => {
+      clearInterval(countdownInterval);
+    };
+  }, []);
+
+  // 自动保存
+  useEffect(() => {
+    console.log('设置自动保存定时器');
+    const autoSaveInterval = setInterval(() => {
+      console.log('执行自动保存，当前游戏状态:', gameStateRef.current);
+      // 使用ref获取最新的游戏状态
+      const success = saveService.autoSave(gameStateRef.current);
+      if (success) {
+        console.log('自动保存成功，localStorage内容:', localStorage.getItem('fallout_shelter_save_0'));
+        setAutoSaveCountdown(5); // 保存后重置倒计时
+      } else {
+        console.error('自动保存失败');
+      }
+    }, 5000); // 每5秒自动保存一次 (测试用)
+
+    return () => {
+      console.log('清除自动保存定时器');
+      clearInterval(autoSaveInterval);
+    };
+  }, []); // 移除gameState依赖
+
   return {
     gameState,
     buildRoom,
@@ -470,6 +550,9 @@ export const useGameState = () => {
     canRecruitResident,
     startResearch,
     canStartResearch,
+    saveGame,
+    loadGame,
+    autoSaveCountdown,
   };
 };
 
@@ -523,6 +606,13 @@ const getRoomData = (roomType: Room['type']) => {
       cost: { materials: 70, components: 15 },
       upgradeCost: { materials: 140, components: 30 },
       buildTime: 16,
+    },
+    basic_laboratory: {
+      maxWorkers: 2,
+      production: { resource: 'research' as const, rate: 0.5 },
+      cost: { materials: 50, components: 5 },
+      upgradeCost: { materials: 100, components: 15 },
+      buildTime: 15,
     },
     laboratory: {
       maxWorkers: 3,
