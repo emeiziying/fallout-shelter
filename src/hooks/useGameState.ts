@@ -25,9 +25,9 @@ export const useGameState = () => {
       const updatedRooms = prevState.rooms.map(room => {
         if (!room.isBuilding) return room;
 
-        // 自动分配空闲工人参与建造
+        // 自动分配没有具体工作地点的工人参与建造
         const idleWorkers = prevState.residents.filter(r => 
-          !r.isWorking && !room.buildWorkers.includes(r.id)
+          !r.assignedRoom && !room.buildWorkers.includes(r.id)
         ).slice(0, room.maxBuildWorkers - room.buildWorkers.length);
         
         const newBuildWorkers = [...room.buildWorkers, ...idleWorkers.map(w => w.id)];
@@ -144,6 +144,14 @@ export const useGameState = () => {
 
       if (!canAfford) return prevState;
 
+      // 检查是否有没有分配到具体工作地点的居民（可以参与建造）
+      const availableForBuilding = prevState.residents.filter(r => !r.assignedRoom);
+      
+      if (availableForBuilding.length === 0) {
+        // 不阻止建造，只是后续不会有工人自动分配
+        // 可以在这里添加轻提醒逻辑
+      }
+
       const newRoom: Room = {
         id: `${roomType}_${Date.now()}`,
         type: roomType,
@@ -229,6 +237,66 @@ export const useGameState = () => {
         ...prevState,
         residents: updatedResidents,
         rooms: updatedRooms,
+      };
+    });
+  }, []);
+
+  const upgradeRoom = useCallback((roomId: string) => {
+    setGameState(prevState => {
+      const room = prevState.rooms.find(r => r.id === roomId);
+      if (!room || room.isBuilding) return prevState;
+
+      // 检查是否能负担升级成本
+      const canAfford = Object.entries(room.upgradeCost).every(
+        ([resource, cost]) => prevState.resources[resource as keyof Resources] >= (cost || 0)
+      );
+
+      if (!canAfford) return prevState;
+
+      // 扣除升级成本
+      const newResources = { ...prevState.resources };
+      Object.entries(room.upgradeCost).forEach(([resource, cost]) => {
+        newResources[resource as keyof Resources] -= cost || 0;
+      });
+
+      // 升级房间
+      const updatedRooms = prevState.rooms.map(r => {
+        if (r.id === roomId) {
+          const newLevel = r.level + 1;
+          const roomData = getRoomData(r.type);
+          
+          return {
+            ...r,
+            level: newLevel,
+            maxWorkers: Math.min(r.maxWorkers + 1, roomData.maxWorkers + Math.floor(newLevel / 2)), // 每升级增加工人位，有上限
+            production: {
+              ...r.production,
+              rate: roomData.production.rate * (1 + newLevel * 0.2), // 每级提升20%生产率
+            },
+            upgradeCost: {
+              ...roomData.upgradeCost,
+              // 升级成本随等级递增
+              ...Object.fromEntries(
+                Object.entries(roomData.upgradeCost).map(([resource, cost]) => [
+                  resource,
+                  Math.ceil((cost || 0) * Math.pow(1.5, newLevel - 1))
+                ])
+              )
+            }
+          };
+        }
+        return r;
+      });
+
+      const updatedState = {
+        ...prevState,
+        resources: newResources,
+        rooms: updatedRooms,
+      };
+
+      return {
+        ...updatedState,
+        maxPopulation: calculateMaxPopulation(updatedState),
       };
     });
   }, []);
@@ -392,6 +460,7 @@ export const useGameState = () => {
   return {
     gameState,
     buildRoom,
+    upgradeRoom,
     cancelBuild,
     assignWorker,
     unassignWorker,

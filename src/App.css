@@ -70,22 +70,67 @@
 }
 
 @media (max-width: 768px) {
+  .notification {
+    top: 10px;
+    right: 10px;
+    left: 10px;
+    max-width: none;
+    font-size: 13px;
+    padding: 10px 16px;
+  }
+  
+  .app-header {
+    padding: 15px 10px;
+  }
+  
   .app-header h1 {
-    font-size: 24px;
+    font-size: 20px;
+    margin-bottom: 15px;
   }
   
   .nav-tabs {
-    flex-direction: column;
-    align-items: center;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 2px;
   }
   
   .tab, .tab-active {
-    min-width: 120px;
+    padding: 8px 12px;
+    font-size: 12px;
+    min-width: 80px;
     text-align: center;
+    flex: 1;
+    max-width: 120px;
   }
   
   .container {
-    padding: 10px;
+    padding: 8px;
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-header h1 {
+    font-size: 18px;
+  }
+  
+  .nav-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    width: 100%;
+    max-width: 300px;
+    margin: 0 auto;
+  }
+  
+  .tab, .tab-active {
+    padding: 10px 8px;
+    font-size: 11px;
+    min-width: auto;
+  }
+  
+  .container {
+    padding: 5px;
   }
 }
 
@@ -121,12 +166,143 @@
 /* 响应式网格调整 */
 @media (max-width: 1024px) {
   .grid-3 {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
 @media (max-width: 640px) {
   .grid-2, .grid-3 {
     grid-template-columns: 1fr;
+  }
+}
+
+/* 通知样式 */
+.notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: rgba(255, 152, 0, 0.9);
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+  z-index: 1000;
+  font-size: 14px;
+  font-weight: 500;
+  max-width: 300px;
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* 统一卡片样式系统 */
+.card {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  color: #fff;
+}
+
+.card:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.card h2 {
+  margin: 0 0 16px 0;
+  color: #fff;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.card h3 {
+  color: #fff;
+  margin-bottom: 8px;
+}
+
+.card h4 {
+  color: #fff;
+  margin-bottom: 6px;
+}
+
+.card p {
+  color: #ccc;
+  line-height: 1.5;
+}
+
+/* 子卡片样式 - 用于卡片内的子元素 */
+.sub-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+  transition: all 0.2s ease;
+  color: #fff;
+}
+
+.sub-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* 小卡片样式 - 用于列表项 */
+.mini-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  padding: 8px;
+  margin-bottom: 8px;
+  transition: all 0.2s ease;
+  color: #fff;
+}
+
+.mini-card:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+/* 移动端卡片优化 */
+@media (max-width: 768px) {
+  .card {
+    padding: 12px;
+    margin-bottom: 12px;
+    border-radius: 6px;
+  }
+  
+  .card h2 {
+    font-size: 18px;
+    margin-bottom: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .card {
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+  }
+  
+  .card h2 {
+    font-size: 16px;
+    margin-bottom: 10px;
+    text-align: center;
   }
 }

@@ -1,8 +1,15 @@
 .resource-item {
   padding: 12px;
   background: rgba(255, 255, 255, 0.05);
-  border-radius: 6px;
+  border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.2s ease;
+}
+
+.resource-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .resource-header {
@@ -48,4 +55,75 @@
   0% { opacity: 1; }
   50% { opacity: 0.7; }
   100% { opacity: 1; }
+}
+
+/* 移动端优化 */
+@media (max-width: 768px) {
+  .resource-item {
+    padding: 8px;
+  }
+  
+  .resource-header {
+    margin-bottom: 4px;
+  }
+  
+  .resource-icon {
+    font-size: 16px;
+  }
+  
+  .resource-name {
+    font-size: 12px;
+  }
+  
+  .resource-amount {
+    font-size: 16px;
+    margin-bottom: 2px;
+  }
+  
+  .resource-limit {
+    font-size: 14px;
+  }
+  
+  .resource-rate {
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .resource-item {
+    padding: 6px 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .resource-header {
+    margin-bottom: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  
+  .resource-details {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+  }
+  
+  .resource-amount {
+    font-size: 14px;
+    line-height: 1.2;
+    margin-bottom: 0;
+  }
+  
+  .resource-limit {
+    font-size: 12px;
+  }
+  
+  .resource-rate {
+    font-size: 9px;
+    line-height: 1.2;
+    margin-top: 2px;
+  }
 }

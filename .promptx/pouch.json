@@ -1,0 +1,99 @@
+{
+  "currentState": "learn_error",
+  "stateHistory": [
+    {
+      "from": "initial",
+      "command": "welcome",
+      "timestamp": "2025-07-15T05:16:56.394Z",
+      "args": []
+    },
+    {
+      "from": "service_discovery",
+      "command": "action",
+      "timestamp": "2025-07-15T05:17:22.032Z",
+      "args": [
+        "noface"
+      ]
+    },
+    {
+      "from": "role_activated_with_memory",
+      "command": "init",
+      "timestamp": "2025-07-15T05:18:07.148Z",
+      "args": [
+        {
+          "workingDirectory": "/Users/quan/Dev/game",
+          "ideType": "cursor"
+        }
+      ]
+    },
+    {
+      "from": "initialized",
+      "command": "welcome",
+      "timestamp": "2025-07-15T05:18:08.347Z",
+      "args": []
+    },
+    {
+      "from": "service_discovery",
+      "command": "action",
+      "timestamp": "2025-07-15T05:18:31.184Z",
+      "args": [
+        "noface"
+      ]
+    },
+    {
+      "from": "role_activated_with_memory",
+      "command": "learn",
+      "timestamp": "2025-07-15T05:25:04.513Z",
+      "args": [
+        "@file://prompt.md"
+      ]
+    },
+    {
+      "from": "learn_error",
+      "command": "learn",
+      "timestamp": "2025-07-15T05:25:50.142Z",
+      "args": [
+        "@file://./prompt.md"
+      ]
+    },
+    {
+      "from": "learn_error",
+      "command": "learn",
+      "timestamp": "2025-07-15T05:26:08.588Z",
+      "args": [
+        "@file:///Users/quan/Dev/game/prompt.md"
+      ]
+    },
+    {
+      "from": "learn_error",
+      "command": "action",
+      "timestamp": "2025-07-15T09:17:28.224Z",
+      "args": [
+        "nuwa"
+      ]
+    },
+    {
+      "from": "role_activated_with_memory",
+      "command": "welcome",
+      "timestamp": "2025-07-15T09:17:44.741Z",
+      "args": []
+    },
+    {
+      "from": "service_discovery",
+      "command": "action",
+      "timestamp": "2025-07-15T09:18:18.343Z",
+      "args": [
+        "noface"
+      ]
+    },
+    {
+      "from": "role_activated_with_memory",
+      "command": "learn",
+      "timestamp": "2025-07-15T09:18:47.848Z",
+      "args": [
+        "@file:///Users/quan/Dev/game/prompt.md"
+      ]
+    }
+  ],
+  "lastUpdated": "2025-07-15T09:18:47.852Z"
+}

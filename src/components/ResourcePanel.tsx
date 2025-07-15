@@ -51,16 +51,18 @@ const ResourcePanel: React.FC<ResourcePanelProps> = ({ resources, resourcesPerSe
                   {resourceNames[resourceType as keyof Resources]}
                 </span>
               </div>
-              <div className="resource-amount">
-                <span className={isNearLimit ? 'near-limit' : ''}>
-                  {formatNumber(amount)}
-                </span>
-                <span className="resource-limit">
-                  / {formatNumber(limit)}
-                </span>
-              </div>
-              <div className="resource-rate">
-                {rate > 0 ? `+${formatProductionRate(rate)}/秒` : rate < 0 ? `${formatProductionRate(rate)}/秒` : ''}
+              <div className="resource-details">
+                <div className="resource-amount">
+                  <span className={isNearLimit ? 'near-limit' : ''}>
+                    {formatNumber(amount)}
+                  </span>
+                  <span className="resource-limit">
+                    / {formatNumber(limit)}
+                  </span>
+                </div>
+                <div className="resource-rate">
+                  {rate > 0 ? `+${formatProductionRate(rate)}/秒` : rate < 0 ? `${formatProductionRate(rate)}/秒` : ''}
+                </div>
               </div>
             </div>
           );

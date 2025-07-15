@@ -47,6 +47,11 @@
   color: #ccc;
 }
 
+.building-count {
+  color: #ff9800;
+  font-size: 12px;
+}
+
 .room-cost {
   display: flex;
   gap: 8px;
@@ -154,6 +159,15 @@
   color: #aaa;
 }
 
+.build-time {
+  font-weight: normal;
+}
+
+.build-time.no-workers {
+  color: #ff9800;
+  font-style: italic;
+}
+
 .cancel-build-button {
   background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
   color: white;
@@ -200,4 +214,407 @@
 
 .remove-worker-button:hover {
   background-color: #f57c00;
+}
+
+.assign-worker-section {
+  margin-top: 8px;
+}
+
+.worker-select {
+  width: 100%;
+  padding: 4px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.worker-select:focus {
+  outline: none;
+  border-color: #2196F3;
+  box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
+}
+
+.worker-select option {
+  background: #2d2d2d;
+  color: white;
+}
+
+.room-actions {
+  margin-top: 8px;
+}
+
+.upgrade-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.upgrade-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.upgrade-cost {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.upgrade-label {
+  font-weight: bold;
+  color: #333;
+  margin-right: 8px;
+}
+
+.upgrade-benefits {
+  font-size: 12px;
+  color: #4CAF50;
+}
+
+.benefits-text {
+  font-weight: 500;
+}
+
+.upgrade-button {
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+  align-self: flex-start;
+}
+
+.upgrade-button:hover:not(:disabled) {
+  background: linear-gradient(135deg, #45a049 0%, #3d8b40 100%);
+  transform: translateY(-1px);
+}
+
+.upgrade-button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* 新的设施管理样式 */
+.rooms-header {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.rooms-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.search-input {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  max-width: 300px;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #2196F3;
+  box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
+}
+
+.category-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.category-filter {
+  padding: 6px 12px;
+  border: 1px solid #ddd;
+  background: white;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s;
+  color: #333;
+}
+
+.category-filter:hover {
+  background: #f5f5f5;
+}
+
+.category-filter.active {
+  background: #2196F3;
+  color: white;
+  border-color: #2196F3;
+}
+
+.category-section {
+  margin-bottom: 16px;
+}
+
+.category-header {
+  cursor: pointer;
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
+  margin-bottom: 12px;
+}
+
+.category-header h4 {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #333;
+}
+
+.expand-icon {
+  transition: transform 0.2s;
+  color: #666;
+  font-size: 12px;
+}
+
+.expand-icon.expanded {
+  transform: rotate(90deg);
+}
+
+.rooms-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.room-card {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  transition: all 0.2s ease;
+}
+
+.room-card:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.room-card-header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+}
+
+.room-card-content {
+  margin-bottom: 12px;
+}
+
+.room-type-group {
+  margin-bottom: 16px;
+}
+
+.room-type-header {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin-bottom: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.room-type-header h4 {
+  margin: 0;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.room-type-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+@media (max-width: 768px) {
+  .rooms-header h3 {
+    font-size: 18px;
+    margin-bottom: 8px;
+  }
+  
+  .rooms-controls {
+    gap: 8px;
+  }
+  
+  .search-input {
+    font-size: 16px; /* 防止iOS缩放 */
+    max-width: 100%;
+  }
+  
+  .category-filters {
+    justify-content: center;
+  }
+  
+  .category-filter {
+    padding: 8px 12px;
+    font-size: 11px;
+  }
+  
+  .rooms-grid, .room-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .room-card, .room-card {
+    padding: 10px;
+  }
+  
+  .room-card-header .room-name,
+  .room-header .room-info h3 {
+    font-size: 16px;
+  }
+  
+  .room-type-header h4 {
+    font-size: 14px;
+  }
+  
+  .room-type-list {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  
+  .upgrade-section {
+    padding: 6px;
+  }
+  
+  .upgrade-cost {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  
+  .cost-item {
+    font-size: 11px;
+    padding: 2px 4px;
+  }
+  
+  .upgrade-button, .build-button {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+  
+  .remove-worker-button {
+    font-size: 9px;
+    padding: 2px 4px;
+  }
+}
+
+@media (max-width: 480px) {
+  .rooms-header {
+    gap: 12px;
+  }
+  
+  .rooms-controls {
+    gap: 6px;
+  }
+  
+  .category-filters {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+  }
+  
+  .category-filter {
+    padding: 6px 4px;
+    font-size: 10px;
+    text-align: center;
+  }
+  
+  .room-grid {
+    gap: 8px;
+  }
+  
+  .room-card {
+    padding: 8px;
+  }
+  
+  .room-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  
+  .room-info h3 {
+    font-size: 14px;
+    margin-bottom: 4px;
+  }
+  
+  .room-description {
+    font-size: 11px;
+    display: none; /* 隐藏描述节省空间 */
+  }
+  
+  .room-cost {
+    margin-bottom: 8px;
+  }
+  
+  .existing-count {
+    font-size: 11px;
+  }
+  
+  .upgrade-info {
+    gap: 2px;
+  }
+  
+  .upgrade-label {
+    font-size: 11px;
+  }
+  
+  .benefits-text {
+    font-size: 10px;
+  }
+  
+  .workers-list {
+    gap: 2px;
+  }
+  
+  .room-workers {
+    font-size: 12px;
+  }
+  
+  .build-details {
+    flex-direction: column;
+    gap: 2px;
+  }
+  
+  .build-workers, .build-time {
+    font-size: 10px;
+  }
+  
+  .room-type-header {
+    padding: 6px 8px;
+  }
+  
+  .room-type-header h4 {
+    font-size: 13px;
+  }
+  
+  .room-type-list {
+    gap: 6px;
+  }
+  
+  .worker-select {
+    font-size: 11px;
+    padding: 3px 6px;
+  }
 }

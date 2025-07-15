@@ -8,9 +8,12 @@ import GameStats from './components/GameStats';
 import './App.css';
 
 function App() {
+  const [notification, setNotification] = useState<string | null>(null);
+  
   const { 
     gameState, 
     buildRoom, 
+    upgradeRoom,
     cancelBuild, 
     assignWorker, 
     unassignWorker,
@@ -22,8 +25,25 @@ function App() {
   } = useGameState();
   const [activeTab, setActiveTab] = useState<'overview' | 'rooms' | 'residents' | 'technology'>('overview');
 
+  const handleBuildRoom = (roomType: any) => {
+    const availableForBuilding = gameState.residents.filter(r => !r.assignedRoom);
+    
+    if (availableForBuilding.length === 0) {
+      setNotification('没有空闲居民可以参与建造，建造效率会很低');
+      setTimeout(() => setNotification(null), 3000);
+    }
+    
+    buildRoom(roomType);
+  };
+
+
   return (
     <div className="App">
+      {notification && (
+        <div className="notification">
+          {notification}
+        </div>
+      )}
       <header className="app-header">
         <h1>🏠 末日避难所</h1>
         <div className="nav-tabs">
@@ -70,8 +90,11 @@ function App() {
             rooms={gameState.rooms}
             resources={gameState.resources}
             unlockedRooms={gameState.unlockedRooms}
-            onBuildRoom={buildRoom}
+            residents={gameState.residents}
+            onBuildRoom={handleBuildRoom}
+            onUpgradeRoom={upgradeRoom}
             onCancelBuild={cancelBuild}
+            onAssignWorker={assignWorker}
             onUnassignWorker={unassignWorker}
           />
         )}

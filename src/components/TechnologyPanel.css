@@ -6,14 +6,16 @@
 }
 
 .tech-card {
-  border: 1px solid #ddd;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
   padding: 16px;
-  background-color: #f9f9f9;
-  transition: box-shadow 0.2s ease;
+  background: rgba(255, 255, 255, 0.05);
+  transition: all 0.2s ease;
 }
 
 .tech-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
@@ -39,7 +41,7 @@
 }
 
 .tech-description {
-  color: #666;
+  color: #ccc;
   font-size: 14px;
   margin-bottom: 12px;
   line-height: 1.4;
@@ -53,7 +55,7 @@
   display: block;
   margin-bottom: 4px;
   font-size: 14px;
-  color: #333;
+  color: #fff;
 }
 
 .requirement {
@@ -84,7 +86,7 @@
   display: block;
   margin-bottom: 4px;
   font-size: 14px;
-  color: #333;
+  color: #fff;
 }
 
 .unlocks-list {
@@ -110,7 +112,7 @@
   display: block;
   margin-bottom: 4px;
   font-size: 14px;
-  color: #333;
+  color: #fff;
 }
 
 .cost-item {
@@ -157,8 +159,8 @@
 }
 
 .active-research {
-  background-color: #fff3e0;
-  border: 1px solid #ffcc02;
+  background: rgba(255, 152, 0, 0.1);
+  border: 1px solid rgba(255, 152, 0, 0.3);
   border-radius: 8px;
   padding: 16px;
   margin-bottom: 24px;
@@ -170,8 +172,8 @@
 }
 
 .research-item.active {
-  background-color: white;
-  border: 1px solid #ff9800;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 152, 0, 0.4);
   border-radius: 6px;
   padding: 12px;
 }
@@ -212,4 +214,154 @@
   font-size: 12px;
   color: #666;
   text-align: center;
+}
+
+/* 移动端优化 */
+@media (max-width: 768px) {
+  .tech-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .tech-card {
+    padding: 12px;
+  }
+  
+  .tech-header h3 {
+    font-size: 16px;
+  }
+  
+  .tech-status {
+    font-size: 11px;
+  }
+  
+  .tech-description {
+    font-size: 13px;
+    margin-bottom: 10px;
+  }
+  
+  .tech-requirements strong,
+  .tech-unlocks strong,
+  .tech-cost strong {
+    font-size: 12px;
+  }
+  
+  .requirement,
+  .unlock-item,
+  .cost-item {
+    font-size: 11px;
+    padding: 2px 4px;
+  }
+  
+  .research-button {
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+  
+  .active-research {
+    padding: 12px;
+    margin-bottom: 16px;
+  }
+  
+  .active-research h3 {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .tech-card {
+    padding: 10px;
+  }
+  
+  .tech-header {
+    flex-direction: column;
+    gap: 4px;
+    align-items: flex-start;
+  }
+  
+  .tech-header h3 {
+    font-size: 15px;
+    margin-bottom: 2px;
+  }
+  
+  .tech-status {
+    font-size: 10px;
+    align-self: flex-end;
+  }
+  
+  .tech-description {
+    font-size: 12px;
+    margin-bottom: 8px;
+  }
+  
+  .tech-requirements,
+  .tech-unlocks,
+  .tech-cost {
+    margin-bottom: 8px;
+  }
+  
+  .tech-requirements strong,
+  .tech-unlocks strong,
+  .tech-cost strong {
+    font-size: 11px;
+    margin-bottom: 2px;
+  }
+  
+  .unlocks-list {
+    gap: 2px;
+  }
+  
+  .requirement,
+  .unlock-item,
+  .cost-item {
+    font-size: 10px;
+    padding: 1px 3px;
+    margin: 1px 2px 1px 0;
+  }
+  
+  .research-button {
+    width: 100%;
+    padding: 12px;
+    font-size: 12px;
+  }
+  
+  .tech-completed {
+    font-size: 12px;
+    padding: 8px;
+  }
+  
+  .active-research {
+    padding: 10px;
+    margin-bottom: 12px;
+  }
+  
+  .active-research h3 {
+    font-size: 15px;
+    margin-bottom: 8px;
+  }
+  
+  .research-item.active {
+    padding: 8px;
+  }
+  
+  .research-header {
+    margin-bottom: 6px;
+  }
+  
+  .research-name {
+    font-size: 13px;
+  }
+  
+  .research-progress {
+    font-size: 12px;
+  }
+  
+  .progress-bar {
+    height: 6px;
+    margin-bottom: 6px;
+  }
+  
+  .research-time {
+    font-size: 11px;
+  }
 }
