@@ -1,0 +1,142 @@
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.recruit-button {
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+}
+
+.residents-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+.resident-card {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.resident-header {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.resident-avatar {
+  font-size: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+}
+
+.resident-info h3 {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+}
+
+.resident-stats {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  color: #ccc;
+}
+
+.skills-section h4 {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  color: #ddd;
+}
+
+.skills-grid {
+  display: grid;
+  gap: 8px;
+}
+
+.skill-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.skill-item span:first-child {
+  width: 40px;
+  color: #ccc;
+}
+
+.skill-bar {
+  flex: 1;
+  height: 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  position: relative;
+  overflow: hidden;
+}
+
+.skill-fill {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.skill-value {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 10px;
+  font-weight: bold;
+  color: white;
+  text-shadow: 1px 1px 1px rgba(0,0,0,0.8);
+}
+
+.assignment-section {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.current-assignment {
+  font-size: 14px;
+  color: #4CAF50;
+}
+
+.assignment-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.assignment-controls label {
+  font-size: 12px;
+  color: #ccc;
+}
+
+.assignment-controls select {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  padding: 6px;
+  color: white;
+  font-size: 12px;
+}
+
+.assignment-controls select option {
+  background: #2d2d2d;
+  color: white;
+}
+
+.build-progress-mini {
+  font-size: 12px;
+  color: #4CAF50;
+  margin-top: 4px;
+}
