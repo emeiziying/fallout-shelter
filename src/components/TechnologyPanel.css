@@ -1,0 +1,215 @@
+.tech-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.tech-card {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 16px;
+  background-color: #f9f9f9;
+  transition: box-shadow 0.2s ease;
+}
+
+.tech-card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.tech-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.tech-header h3 {
+  margin: 0;
+  font-size: 18px;
+  color: #333;
+}
+
+.tech-status {
+  font-size: 12px;
+  font-weight: bold;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background-color: rgba(255, 255, 255, 0.8);
+}
+
+.tech-description {
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+.tech-requirements {
+  margin-bottom: 12px;
+}
+
+.tech-requirements strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 14px;
+  color: #333;
+}
+
+.requirement {
+  display: inline-block;
+  padding: 2px 6px;
+  margin: 2px 4px 2px 0;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.requirement.completed {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.requirement.incomplete {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.tech-unlocks {
+  margin-bottom: 12px;
+}
+
+.tech-unlocks strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 14px;
+  color: #333;
+}
+
+.unlocks-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.unlock-item {
+  background-color: #e3f2fd;
+  color: #1565c0;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+  border: 1px solid #bbdefb;
+}
+
+.tech-cost {
+  margin-bottom: 16px;
+}
+
+.tech-cost strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 14px;
+  color: #333;
+}
+
+.cost-item {
+  display: inline-block;
+  background-color: #fff3e0;
+  color: #ef6c00;
+  padding: 2px 6px;
+  margin: 2px 4px 2px 0;
+  border-radius: 4px;
+  font-size: 12px;
+  border: 1px solid #ffcc02;
+}
+
+.research-button {
+  width: 100%;
+  padding: 8px 16px;
+  background-color: #2196f3;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+  transition: background-color 0.2s ease;
+}
+
+.research-button:hover:not(:disabled) {
+  background-color: #1976d2;
+}
+
+.research-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.tech-completed {
+  text-align: center;
+  color: #4caf50;
+  font-weight: bold;
+  padding: 8px;
+  background-color: #e8f5e8;
+  border-radius: 4px;
+  border: 1px solid #c8e6c9;
+}
+
+.active-research {
+  background-color: #fff3e0;
+  border: 1px solid #ffcc02;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 24px;
+}
+
+.active-research h3 {
+  margin: 0 0 12px 0;
+  color: #ef6c00;
+}
+
+.research-item.active {
+  background-color: white;
+  border: 1px solid #ff9800;
+  border-radius: 6px;
+  padding: 12px;
+}
+
+.research-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.research-name {
+  font-weight: bold;
+  color: #333;
+}
+
+.research-progress {
+  color: #ff9800;
+  font-weight: bold;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background-color: #f0f0f0;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.progress-fill {
+  height: 100%;
+  background-color: #ff9800;
+  transition: width 0.3s ease;
+}
+
+.research-time {
+  font-size: 12px;
+  color: #666;
+  text-align: center;
+}

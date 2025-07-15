@@ -103,6 +103,12 @@
   font-size: 12px;
 }
 
+.room-capacity {
+  color: #4CAF50;
+  font-size: 12px;
+  font-weight: bold;
+}
+
 .build-info {
   display: flex;
   flex-direction: column;
@@ -167,4 +173,31 @@
 .building-status {
   color: #ff9800;
   font-size: 12px;
+}
+
+.room-workers-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.workers-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.remove-worker-button {
+  background-color: #ff9800;
+  color: white;
+  border: none;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 10px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.remove-worker-button:hover {
+  background-color: #f57c00;
 }

@@ -5,6 +5,19 @@ export interface Resources {
   materials: number;
   components: number;
   chemicals: number;
+  money: number;
+  research: number;
+}
+
+export interface ResourceLimits {
+  food: number;
+  water: number;
+  power: number;
+  materials: number;
+  components: number;
+  chemicals: number;
+  money: number;
+  research: number;
 }
 
 export interface Resident {
@@ -49,11 +62,16 @@ export type RoomType =
   | 'water_plant'
   | 'power_station'
   | 'workshop'
+  | 'workbench'
   | 'quarters'
   | 'medical'
   | 'laboratory'
   | 'armory'
-  | 'training_room';
+  | 'training_room'
+  | 'warehouse'
+  | 'water_tank'
+  | 'power_bank'
+  | 'vault';
 
 export interface Technology {
   id: string;
@@ -78,9 +96,12 @@ export interface TechEffect {
 export interface GameState {
   resources: Resources;
   resourcesPerSecond: Resources;
+  resourceLimits: ResourceLimits;
   residents: Resident[];
   rooms: Room[];
   technologies: Technology[];
+  unlockedRooms: RoomType[];
+  activeResearch?: string;
   gameTime: number;
   lastUpdate: number;
   shelterLevel: number;

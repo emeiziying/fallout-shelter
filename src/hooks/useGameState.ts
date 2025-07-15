@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { GameState, Resources, Room, Resident } from '../types';
 import { initialGameState } from '../data/initialState';
-import { calculateResourceProduction } from '../utils/gameLogic';
+import { calculateResourceProduction, calculateResourceLimits, calculateMaxPopulation } from '../utils/gameLogic';
 
 export const useGameState = () => {
   const [gameState, setGameState] = useState<GameState>(initialGameState);
@@ -9,6 +9,7 @@ export const useGameState = () => {
   const updateResources = useCallback((deltaTime: number) => {
     setGameState(prevState => {
       const production = calculateResourceProduction(prevState);
+      const resourceLimits = calculateResourceLimits(prevState);
       const resourceIncrease: Resources = {
         food: production.food * deltaTime,
         water: production.water * deltaTime,
@@ -16,6 +17,8 @@ export const useGameState = () => {
         materials: production.materials * deltaTime,
         components: production.components * deltaTime,
         chemicals: production.chemicals * deltaTime,
+        money: production.money * deltaTime,
+        research: production.research * deltaTime,
       };
 
       // 处理建造进度和自动分配建造工人
@@ -34,11 +37,14 @@ export const useGameState = () => {
         const progressIncrease = buildEfficiency * deltaTime;
         const newProgress = Math.min(room.buildTime, room.buildProgress + progressIncrease);
         
+        // 检查建造是否完成
+        const isCompleted = newProgress >= room.buildTime;
+        
         return {
           ...room,
-          buildWorkers: newBuildWorkers,
+          buildWorkers: isCompleted ? [] : newBuildWorkers,
           buildProgress: newProgress,
-          isBuilding: newProgress < room.buildTime,
+          isBuilding: !isCompleted,
         };
       });
 
@@ -57,19 +63,72 @@ export const useGameState = () => {
         };
       });
 
+      // 处理科技研发进度
+      let updatedTechnologies = [...prevState.technologies];
+      let completedTech = null;
+      
+      if (prevState.activeResearch) {
+        const techIndex = updatedTechnologies.findIndex(t => t.id === prevState.activeResearch);
+        if (techIndex !== -1) {
+          const tech = updatedTechnologies[techIndex];
+          const newProgress = tech.progress + (production.research * deltaTime);
+          
+          if (newProgress >= tech.researchTime) {
+            // 研发完成
+            updatedTechnologies[techIndex] = {
+              ...tech,
+              progress: tech.researchTime,
+              isResearched: true,
+              isResearching: false,
+            };
+            completedTech = tech;
+          } else {
+            updatedTechnologies[techIndex] = {
+              ...tech,
+              progress: newProgress,
+            };
+          }
+        }
+      }
+
+      // 应用科技效果
+      let newUnlockedRooms = [...prevState.unlockedRooms];
+      if (completedTech) {
+        completedTech.unlocks.forEach(roomType => {
+          if (!newUnlockedRooms.includes(roomType as any)) {
+            newUnlockedRooms.push(roomType as any);
+          }
+        });
+      }
+
+      const maxPopulation = calculateMaxPopulation(prevState);
+
+      // 计算新的资源值
+      const newResources = {
+        food: Math.max(0, Math.min(resourceLimits.food, prevState.resources.food + resourceIncrease.food)),
+        water: Math.max(0, Math.min(resourceLimits.water, prevState.resources.water + resourceIncrease.water)),
+        power: Math.max(0, Math.min(resourceLimits.power, prevState.resources.power + resourceIncrease.power)),
+        materials: Math.max(0, Math.min(resourceLimits.materials, prevState.resources.materials + resourceIncrease.materials)),
+        components: Math.max(0, Math.min(resourceLimits.components, prevState.resources.components + resourceIncrease.components)),
+        chemicals: Math.max(0, Math.min(resourceLimits.chemicals, prevState.resources.chemicals + resourceIncrease.chemicals)),
+        money: Math.max(0, Math.min(resourceLimits.money, prevState.resources.money + resourceIncrease.money)),
+        research: Math.max(0, Math.min(resourceLimits.research, prevState.resources.research + resourceIncrease.research)),
+      };
+
+      // 应用资源短缺惩罚
+      const penalizedResidents = applyResourceShortageEffects(updatedResidents, newResources, deltaTime);
+
       return {
         ...prevState,
-        residents: updatedResidents,
+        residents: penalizedResidents,
         rooms: updatedRooms,
-        resources: {
-          food: Math.max(0, prevState.resources.food + resourceIncrease.food),
-          water: Math.max(0, prevState.resources.water + resourceIncrease.water),
-          power: Math.max(0, prevState.resources.power + resourceIncrease.power),
-          materials: Math.max(0, prevState.resources.materials + resourceIncrease.materials),
-          components: Math.max(0, prevState.resources.components + resourceIncrease.components),
-          chemicals: Math.max(0, prevState.resources.chemicals + resourceIncrease.chemicals),
-        },
+        technologies: updatedTechnologies,
+        unlockedRooms: newUnlockedRooms,
+        activeResearch: completedTech ? undefined : prevState.activeResearch,
+        maxPopulation: maxPopulation,
+        resources: newResources,
         resourcesPerSecond: production,
+        resourceLimits: resourceLimits,
         gameTime: prevState.gameTime + deltaTime,
         lastUpdate: Date.now(),
       };
@@ -106,10 +165,15 @@ export const useGameState = () => {
         newResources[resource as keyof Resources] -= cost || 0;
       });
 
-      return {
+      const updatedState = {
         ...prevState,
         resources: newResources,
         rooms: [...prevState.rooms, newRoom],
+      };
+
+      return {
+        ...updatedState,
+        maxPopulation: calculateMaxPopulation(updatedState),
       };
     });
   }, []);
@@ -123,17 +187,43 @@ export const useGameState = () => {
         return prevState;
       }
 
+      // 先从之前的工作岗位移除
+      const updatedRooms = prevState.rooms.map(r => {
+        if (r.workers.includes(residentId)) {
+          return { ...r, workers: r.workers.filter(id => id !== residentId) };
+        }
+        if (r.id === roomId) {
+          return { ...r, workers: [...r.workers, residentId] };
+        }
+        return r;
+      });
+
       const updatedResidents = prevState.residents.map(r =>
         r.id === residentId
           ? { ...r, assignedRoom: roomId, isWorking: true }
           : r
       );
 
-      const updatedRooms = prevState.rooms.map(r =>
-        r.id === roomId
-          ? { ...r, workers: [...r.workers, residentId] }
+      return {
+        ...prevState,
+        residents: updatedResidents,
+        rooms: updatedRooms,
+      };
+    });
+  }, []);
+
+  const unassignWorker = useCallback((residentId: string) => {
+    setGameState(prevState => {
+      const updatedResidents = prevState.residents.map(r =>
+        r.id === residentId
+          ? { ...r, assignedRoom: undefined, isWorking: false }
           : r
       );
+
+      const updatedRooms = prevState.rooms.map(r => ({
+        ...r,
+        workers: r.workers.filter(id => id !== residentId),
+      }));
 
       return {
         ...prevState,
@@ -165,38 +255,59 @@ export const useGameState = () => {
         return resident;
       });
 
-      return {
+      const updatedState = {
         ...prevState,
         resources: refundResources,
         rooms: updatedRooms,
         residents: updatedResidents,
       };
+
+      return {
+        ...updatedState,
+        maxPopulation: calculateMaxPopulation(updatedState),
+      };
     });
   }, []);
 
   const recruitResident = useCallback(() => {
-    const newResident: Resident = {
-      id: `resident_${Date.now()}`,
-      name: generateRandomName(),
-      skills: {
-        engineering: Math.floor(Math.random() * 10) + 1,
-        medical: Math.floor(Math.random() * 10) + 1,
-        combat: Math.floor(Math.random() * 10) + 1,
-        exploration: Math.floor(Math.random() * 10) + 1,
-        research: Math.floor(Math.random() * 10) + 1,
-        management: Math.floor(Math.random() * 10) + 1,
-      },
-      happiness: 80 + Math.floor(Math.random() * 20),
-      health: 90 + Math.floor(Math.random() * 10),
-      age: 18 + Math.floor(Math.random() * 47),
-      isWorking: false,
-    };
+    setGameState(prevState => {
+      const recruitCost = getRecruitCost(prevState.population);
+      
+      // 检查是否有足够的金钱和食物
+      if (prevState.resources.money < recruitCost.money || 
+          prevState.resources.food < recruitCost.food ||
+          prevState.population >= prevState.maxPopulation) {
+        return prevState;
+      }
 
-    setGameState(prevState => ({
-      ...prevState,
-      residents: [...prevState.residents, newResident],
-      population: prevState.population + 1,
-    }));
+      const newResident: Resident = {
+        id: `resident_${Date.now()}`,
+        name: generateRandomName(),
+        skills: {
+          engineering: Math.floor(Math.random() * 10) + 1,
+          medical: Math.floor(Math.random() * 10) + 1,
+          combat: Math.floor(Math.random() * 10) + 1,
+          exploration: Math.floor(Math.random() * 10) + 1,
+          research: Math.floor(Math.random() * 10) + 1,
+          management: Math.floor(Math.random() * 10) + 1,
+        },
+        happiness: 80 + Math.floor(Math.random() * 20),
+        health: 90 + Math.floor(Math.random() * 10),
+        age: 18 + Math.floor(Math.random() * 47),
+        isWorking: false,
+      };
+
+      return {
+        ...prevState,
+        residents: [...prevState.residents, newResident],
+        population: prevState.population + 1,
+        resources: {
+          ...prevState.resources,
+          money: prevState.resources.money - recruitCost.money,
+          food: prevState.resources.food - recruitCost.food,
+        },
+      };
+    });
   }, []);
 
   useEffect(() => {
@@ -207,13 +318,89 @@ export const useGameState = () => {
     return () => clearInterval(interval);
   }, [updateResources]);
 
+  const getRecruitmentCost = useCallback(() => {
+    return getRecruitCost(gameState.population);
+  }, [gameState.population]);
+
+  const canRecruitResident = useCallback(() => {
+    const cost = getRecruitCost(gameState.population);
+    return gameState.resources.money >= cost.money && 
+           gameState.resources.food >= cost.food &&
+           gameState.population < gameState.maxPopulation;
+  }, [gameState.resources, gameState.population, gameState.maxPopulation]);
+
+  const startResearch = useCallback((techId: string) => {
+    setGameState(prevState => {
+      const tech = prevState.technologies.find(t => t.id === techId);
+      if (!tech || tech.isResearched || tech.isResearching || prevState.activeResearch) {
+        return prevState;
+      }
+
+      // 检查前置条件
+      const canResearch = tech.requirements.every(reqId => 
+        prevState.technologies.find(t => t.id === reqId)?.isResearched
+      );
+
+      if (!canResearch) return prevState;
+
+      // 检查是否有足够的研究点
+      const canAfford = Object.entries(tech.cost).every(([resource, cost]) => 
+        prevState.resources[resource as keyof Resources] >= (cost || 0)
+      );
+
+      if (!canAfford) return prevState;
+
+      // 扣除研究成本
+      const newResources = { ...prevState.resources };
+      Object.entries(tech.cost).forEach(([resource, cost]) => {
+        newResources[resource as keyof Resources] -= cost || 0;
+      });
+
+      // 更新科技状态
+      const updatedTech = prevState.technologies.map(t =>
+        t.id === techId ? { ...t, isResearching: true } : t
+      );
+
+      return {
+        ...prevState,
+        resources: newResources,
+        technologies: updatedTech,
+        activeResearch: techId,
+      };
+    });
+  }, []);
+
+  const canStartResearch = useCallback((techId: string) => {
+    const tech = gameState.technologies.find(t => t.id === techId);
+    if (!tech || tech.isResearched || tech.isResearching || gameState.activeResearch) {
+      return false;
+    }
+
+    // 检查前置条件
+    const prereqsMet = tech.requirements.every(reqId => 
+      gameState.technologies.find(t => t.id === reqId)?.isResearched
+    );
+
+    // 检查资源
+    const canAfford = Object.entries(tech.cost).every(([resource, cost]) => 
+      gameState.resources[resource as keyof Resources] >= (cost || 0)
+    );
+
+    return prereqsMet && canAfford;
+  }, [gameState.technologies, gameState.activeResearch, gameState.resources]);
+
   return {
     gameState,
     buildRoom,
     cancelBuild,
     assignWorker,
+    unassignWorker,
     recruitResident,
     updateResources,
+    getRecruitmentCost,
+    canRecruitResident,
+    startResearch,
+    canStartResearch,
   };
 };
 
@@ -247,6 +434,13 @@ const getRoomData = (roomType: Room['type']) => {
       upgradeCost: { materials: 160, components: 25 },
       buildTime: 20,
     },
+    workbench: {
+      maxWorkers: 2,
+      production: { resource: 'components' as const, rate: 0.2 },
+      cost: { materials: 40 },
+      upgradeCost: { materials: 80, components: 10 },
+      buildTime: 12,
+    },
     quarters: {
       maxWorkers: 0,
       production: { resource: 'food' as const, rate: 0 },
@@ -263,15 +457,15 @@ const getRoomData = (roomType: Room['type']) => {
     },
     laboratory: {
       maxWorkers: 3,
-      production: { resource: 'components' as const, rate: 0.5 },
-      cost: { materials: 100, components: 20, chemicals: 10 },
+      production: { resource: 'research' as const, rate: 1.0 },
+      cost: { materials: 100, components: 15, chemicals: 10 },
       upgradeCost: { materials: 200, components: 40 },
       buildTime: 25,
     },
     armory: {
       maxWorkers: 2,
       production: { resource: 'components' as const, rate: 0.4 },
-      cost: { materials: 90, components: 25 },
+      cost: { materials: 90, components: 15 },
       upgradeCost: { materials: 180, components: 50 },
       buildTime: 22,
     },
@@ -281,6 +475,34 @@ const getRoomData = (roomType: Room['type']) => {
       cost: { materials: 60, components: 10 },
       upgradeCost: { materials: 120, components: 20 },
       buildTime: 14,
+    },
+    warehouse: {
+      maxWorkers: 1,
+      production: { resource: 'materials' as const, rate: 0 },
+      cost: { materials: 100, money: 200 },
+      upgradeCost: { materials: 200, money: 400 },
+      buildTime: 20,
+    },
+    water_tank: {
+      maxWorkers: 1,
+      production: { resource: 'water' as const, rate: 0 },
+      cost: { materials: 80, components: 15 },
+      upgradeCost: { materials: 160, components: 30 },
+      buildTime: 15,
+    },
+    power_bank: {
+      maxWorkers: 1,
+      production: { resource: 'power' as const, rate: 0 },
+      cost: { materials: 120, components: 25 },
+      upgradeCost: { materials: 240, components: 50 },
+      buildTime: 18,
+    },
+    vault: {
+      maxWorkers: 2,
+      production: { resource: 'money' as const, rate: 0.5 },
+      cost: { materials: 150, components: 30, money: 300 },
+      upgradeCost: { materials: 300, components: 60 },
+      buildTime: 25,
     },
   };
 
@@ -303,6 +525,46 @@ const calculateBuildEfficiency = (room: Room, residents: Resident[], buildWorker
   });
 
   return totalEfficiency / workers.length; // 平均效率
+};
+
+const getRecruitCost = (currentPopulation: number) => {
+  const baseMoney = 100;
+  const baseFood = 20;
+  const multiplier = Math.pow(1.5, currentPopulation - 3); // 基于初始3人计算
+  
+  return {
+    money: Math.ceil(baseMoney * multiplier),
+    food: Math.ceil(baseFood * multiplier),
+  };
+};
+
+const applyResourceShortageEffects = (residents: Resident[], resources: Resources, deltaTime: number): Resident[] => {
+  return residents.map(resident => {
+    let newResident = { ...resident };
+    
+    // 食物短缺影响健康和幸福度
+    if (resources.food <= 0) {
+      newResident.health = Math.max(0, newResident.health - 5 * deltaTime);
+      newResident.happiness = Math.max(0, newResident.happiness - 3 * deltaTime);
+    } else if (resources.food < 20) {
+      newResident.happiness = Math.max(0, newResident.happiness - 1 * deltaTime);
+    }
+    
+    // 水源短缺影响健康
+    if (resources.water <= 0) {
+      newResident.health = Math.max(0, newResident.health - 8 * deltaTime);
+      newResident.happiness = Math.max(0, newResident.happiness - 5 * deltaTime);
+    } else if (resources.water < 15) {
+      newResident.health = Math.max(0, newResident.health - 2 * deltaTime);
+    }
+    
+    // 电力短缺影响幸福度和工作效率
+    if (resources.power <= 0) {
+      newResident.happiness = Math.max(0, newResident.happiness - 2 * deltaTime);
+    }
+    
+    return newResident;
+  });
 };
 
 const generateRandomName = () => {

@@ -3,12 +3,24 @@ import { useGameState } from './hooks/useGameState';
 import ResourcePanel from './components/ResourcePanel';
 import RoomPanel from './components/RoomPanel';
 import ResidentPanel from './components/ResidentPanel';
+import TechnologyPanel from './components/TechnologyPanel';
 import GameStats from './components/GameStats';
 import './App.css';
 
 function App() {
-  const { gameState, buildRoom, cancelBuild, assignWorker, recruitResident } = useGameState();
-  const [activeTab, setActiveTab] = useState<'overview' | 'rooms' | 'residents'>('overview');
+  const { 
+    gameState, 
+    buildRoom, 
+    cancelBuild, 
+    assignWorker, 
+    unassignWorker,
+    recruitResident, 
+    getRecruitmentCost, 
+    canRecruitResident,
+    startResearch,
+    canStartResearch
+  } = useGameState();
+  const [activeTab, setActiveTab] = useState<'overview' | 'rooms' | 'residents' | 'technology'>('overview');
 
   return (
     <div className="App">
@@ -33,6 +45,12 @@ function App() {
           >
             居民管理
           </button>
+          <button 
+            className={activeTab === 'technology' ? 'tab-active' : 'tab'}
+            onClick={() => setActiveTab('technology')}
+          >
+            科技研发
+          </button>
         </div>
       </header>
 
@@ -40,6 +58,7 @@ function App() {
         <ResourcePanel 
           resources={gameState.resources} 
           resourcesPerSecond={gameState.resourcesPerSecond}
+          resourceLimits={gameState.resourceLimits}
         />
 
         {activeTab === 'overview' && (
@@ -50,8 +69,10 @@ function App() {
           <RoomPanel
             rooms={gameState.rooms}
             resources={gameState.resources}
+            unlockedRooms={gameState.unlockedRooms}
             onBuildRoom={buildRoom}
             onCancelBuild={cancelBuild}
+            onUnassignWorker={unassignWorker}
           />
         )}
 
@@ -60,7 +81,20 @@ function App() {
             residents={gameState.residents}
             rooms={gameState.rooms}
             onAssignWorker={assignWorker}
+            onUnassignWorker={unassignWorker}
             onRecruitResident={recruitResident}
+            recruitmentCost={getRecruitmentCost()}
+            canRecruit={canRecruitResident()}
+          />
+        )}
+
+        {activeTab === 'technology' && (
+          <TechnologyPanel
+            technologies={gameState.technologies}
+            resources={gameState.resources}
+            activeResearch={gameState.activeResearch}
+            onStartResearch={startResearch}
+            canStartResearch={canStartResearch}
           />
         )}
       </main>

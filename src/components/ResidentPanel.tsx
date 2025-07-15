@@ -6,14 +6,20 @@ interface ResidentPanelProps {
   residents: Resident[];
   rooms: Room[];
   onAssignWorker: (residentId: string, roomId: string) => void;
+  onUnassignWorker: (residentId: string) => void;
   onRecruitResident: () => void;
+  recruitmentCost: { money: number; food: number };
+  canRecruit: boolean;
 }
 
 const ResidentPanel: React.FC<ResidentPanelProps> = ({ 
   residents, 
   rooms, 
   onAssignWorker, 
-  onRecruitResident 
+  onUnassignWorker,
+  onRecruitResident,
+  recruitmentCost,
+  canRecruit
 }) => {
   const getSkillColor = (level: number) => {
     if (level >= 8) return '#4CAF50';
@@ -22,12 +28,53 @@ const ResidentPanel: React.FC<ResidentPanelProps> = ({
     return '#9E9E9E';
   };
 
+  const getRelevantSkill = (roomType: Room['type'], resident: Resident): number => {
+    const skillMapping = {
+      farm: resident.skills.management,
+      water_plant: resident.skills.engineering,
+      power_station: resident.skills.engineering,
+      workshop: resident.skills.engineering,
+      workbench: resident.skills.engineering,
+      quarters: resident.skills.management,
+      medical: resident.skills.medical,
+      laboratory: resident.skills.research,
+      armory: resident.skills.combat,
+      training_room: resident.skills.combat,
+      warehouse: resident.skills.management,
+      water_tank: resident.skills.engineering,
+      power_bank: resident.skills.engineering,
+      vault: resident.skills.management,
+    };
+    return skillMapping[roomType] || 1;
+  };
+
+  const getJobMatchScore = (room: Room, resident: Resident): number => {
+    const skill = getRelevantSkill(room.type, resident);
+    const happinessBonus = resident.happiness >= 70 ? 0.2 : 0;
+    const healthBonus = resident.health >= 80 ? 0.1 : 0;
+    return skill + happinessBonus + healthBonus;
+  };
+
   const getAvailableRooms = (residentId: string) => {
-    return rooms.filter(room => 
+    const resident = residents.find(r => r.id === residentId);
+    if (!resident) return [];
+
+    const availableRooms = rooms.filter(room => 
       !room.isBuilding && 
-      room.workers.length < room.maxWorkers &&
-      !room.workers.includes(residentId)
+      (room.workers.length < room.maxWorkers || room.workers.includes(residentId))
     );
+
+    // 按匹配度排序，最高分在前
+    return availableRooms.sort((a, b) => {
+      const scoreA = getJobMatchScore(a, resident);
+      const scoreB = getJobMatchScore(b, resident);
+      return scoreB - scoreA;
+    });
+  };
+
+  const isRecommendedJob = (room: Room, resident: Resident): boolean => {
+    const skill = getRelevantSkill(room.type, resident);
+    return skill >= 7; // 技能7分以上视为推荐
   };
 
   const getRoomName = (roomType: Room['type']) => {
@@ -36,11 +83,16 @@ const ResidentPanel: React.FC<ResidentPanelProps> = ({
       water_plant: '净水厂', 
       power_station: '发电站',
       workshop: '工坊',
+      workbench: '工作台',
       quarters: '宿舍',
       medical: '医疗室',
       laboratory: '实验室',
       armory: '军械库',
       training_room: '训练室',
+      warehouse: '仓库',
+      water_tank: '蓄水池',
+      power_bank: '储能站',
+      vault: '金库',
     };
     return names[roomType];
   };
@@ -49,9 +101,21 @@ const ResidentPanel: React.FC<ResidentPanelProps> = ({
     <div className="card">
       <div className="panel-header">
         <h2>居民管理</h2>
-        <button onClick={onRecruitResident} className="recruit-button">
-          招募新居民
-        </button>
+        <div className="recruit-section">
+          <div className="recruit-cost">
+            <span>招募费用:</span>
+            <span>💰 {recruitmentCost.money}</span>
+            <span>🍞 {recruitmentCost.food}</span>
+          </div>
+          <button 
+            onClick={onRecruitResident} 
+            className="recruit-button"
+            disabled={!canRecruit}
+            title={!canRecruit ? "资源不足或人数已满" : "招募新居民"}
+          >
+            招募新居民
+          </button>
+        </div>
       </div>
       
       <div className="residents-grid">
@@ -74,7 +138,23 @@ const ResidentPanel: React.FC<ResidentPanelProps> = ({
               </div>
 
               <div className="skills-section">
-                <h4>技能等级</h4>
+                <div className="skills-header">
+                  <h4>技能等级</h4>
+                  {(() => {
+                    const bestRoom = availableRooms.find(room => isRecommendedJob(room, resident));
+                    if (bestRoom) {
+                      return (
+                        <div className="job-recommendation">
+                          <span className="recommendation-label">推荐:</span>
+                          <span className="recommendation-job">
+                            ★ {getRoomName(bestRoom.type)}
+                          </span>
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
+                </div>
                 <div className="skills-grid">
                   <div className="skill-item">
                     <span>工程</span>
@@ -146,30 +226,41 @@ const ResidentPanel: React.FC<ResidentPanelProps> = ({
                         </div>
                       </div>
                     );
-                  } else if (assignedRoom) {
-                    return (
-                      <div className="current-assignment">
-                        <strong>当前工作:</strong> {getRoomName(assignedRoom.type)}
-                      </div>
-                    );
                   } else {
                     return (
                       <div className="assignment-controls">
-                        <label>分配工作:</label>
+                        <label>工作分配:</label>
                         <select 
+                          value={assignedRoom?.id || ""}
                           onChange={(e) => {
                             if (e.target.value) {
                               onAssignWorker(resident.id, e.target.value);
+                            } else {
+                              onUnassignWorker(resident.id);
                             }
                           }}
-                          defaultValue=""
                         >
-                          <option value="">选择设施</option>
-                          {availableRooms.map(room => (
-                            <option key={room.id} value={room.id}>
-                              {getRoomName(room.type)} ({room.workers.length}/{room.maxWorkers})
-                            </option>
-                          ))}
+                          <option value="">无工作</option>
+                          {availableRooms.map(room => {
+                            const isRecommended = isRecommendedJob(room, resident);
+                            const skill = getRelevantSkill(room.type, resident);
+                            const matchScore = getJobMatchScore(room, resident).toFixed(1);
+                            
+                            return (
+                              <option 
+                                key={room.id} 
+                                value={room.id}
+                                style={{
+                                  backgroundColor: isRecommended ? '#e8f5e8' : 'inherit',
+                                  fontWeight: isRecommended ? 'bold' : 'normal'
+                                }}
+                              >
+                                {isRecommended ? '★ ' : ''}{getRoomName(room.type)} 
+                                ({room.workers.length}/{room.maxWorkers}) 
+                                [技能:{skill} 匹配:{matchScore}]
+                              </option>
+                            );
+                          })}
                         </select>
                       </div>
                     );

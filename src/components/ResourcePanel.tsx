@@ -1,14 +1,15 @@
 import React from 'react';
-import { Resources } from '../types';
-import { formatNumber } from '../utils/gameLogic';
+import { Resources, ResourceLimits } from '../types';
+import { formatNumber, formatProductionRate } from '../utils/gameLogic';
 import './ResourcePanel.css';
 
 interface ResourcePanelProps {
   resources: Resources;
   resourcesPerSecond: Resources;
+  resourceLimits: ResourceLimits;
 }
 
-const ResourcePanel: React.FC<ResourcePanelProps> = ({ resources, resourcesPerSecond }) => {
+const ResourcePanel: React.FC<ResourcePanelProps> = ({ resources, resourcesPerSecond, resourceLimits }) => {
   const resourceIcons = {
     food: '🍞',
     water: '💧',
@@ -16,6 +17,8 @@ const ResourcePanel: React.FC<ResourcePanelProps> = ({ resources, resourcesPerSe
     materials: '🔧',
     components: '⚙️',
     chemicals: '🧪',
+    money: '💰',
+    research: '🔬',
   };
 
   const resourceNames = {
@@ -25,6 +28,8 @@ const ResourcePanel: React.FC<ResourcePanelProps> = ({ resources, resourcesPerSe
     materials: '材料',
     components: '组件',
     chemicals: '化学品',
+    money: '金钱',
+    research: '研究点',
   };
 
   return (
@@ -33,6 +38,9 @@ const ResourcePanel: React.FC<ResourcePanelProps> = ({ resources, resourcesPerSe
       <div className="grid grid-3">
         {Object.entries(resources).map(([resourceType, amount]) => {
           const rate = resourcesPerSecond[resourceType as keyof Resources];
+          const limit = resourceLimits[resourceType as keyof ResourceLimits];
+          const isNearLimit = amount / limit > 0.9;
+          
           return (
             <div key={resourceType} className="resource-item">
               <div className="resource-header">
@@ -44,10 +52,15 @@ const ResourcePanel: React.FC<ResourcePanelProps> = ({ resources, resourcesPerSe
                 </span>
               </div>
               <div className="resource-amount">
-                {formatNumber(amount)}
+                <span className={isNearLimit ? 'near-limit' : ''}>
+                  {formatNumber(amount)}
+                </span>
+                <span className="resource-limit">
+                  / {formatNumber(limit)}
+                </span>
               </div>
               <div className="resource-rate">
-                {rate > 0 ? `+${formatNumber(rate)}/秒` : rate < 0 ? `${formatNumber(rate)}/秒` : ''}
+                {rate > 0 ? `+${formatProductionRate(rate)}/秒` : rate < 0 ? `${formatProductionRate(rate)}/秒` : ''}
               </div>
             </div>
           );

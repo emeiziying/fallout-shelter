@@ -32,3 +32,20 @@
   font-size: 12px;
   color: #4CAF50;
 }
+
+.resource-limit {
+  font-size: 16px;
+  color: #888;
+  margin-left: 4px;
+}
+
+.near-limit {
+  color: #ff9800 !important;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.7; }
+  100% { opacity: 1; }
+}
