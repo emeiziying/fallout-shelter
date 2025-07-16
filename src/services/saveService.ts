@@ -246,13 +246,22 @@ export class SaveService {
     let used = 0;
     let saves = 0;
     
+    // 只计算用户手动存档槽位（1-3），不包括自动存档（slot 0）
+    for (let i = 1; i <= MAX_SAVE_SLOTS; i++) {
+      const key = `${SAVE_PREFIX}${i}`;
+      const data = localStorage.getItem(key);
+      if (data) {
+        saves++;
+      }
+    }
+    
+    // 计算所有存档的总存储使用量（包括自动存档）
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
       if (key && key.startsWith(SAVE_PREFIX)) {
         const data = localStorage.getItem(key);
         if (data) {
           used += data.length;
-          saves++;
         }
       }
     }

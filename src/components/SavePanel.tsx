@@ -6,9 +6,10 @@ import './SavePanel.css';
 interface SavePanelProps {
   onSaveGame: (slotId: number, saveName?: string) => boolean;
   onLoadGame: (slotId: number) => boolean;
+  onSetAutoSaveEnabled: (enabled: boolean) => void;
 }
 
-const SavePanel: React.FC<SavePanelProps> = ({ onSaveGame, onLoadGame }) => {
+const SavePanel: React.FC<SavePanelProps> = ({ onSaveGame, onLoadGame, onSetAutoSaveEnabled }) => {
   const [saveSlots, setSaveSlots] = useState<SaveSlot[]>([]);
   const [activeTab, setActiveTab] = useState<'save' | 'load'>('save');
   const [saveName, setSaveName] = useState('');
@@ -81,12 +82,20 @@ const SavePanel: React.FC<SavePanelProps> = ({ onSaveGame, onLoadGame }) => {
   };
 
   const handleClearAll = () => {
-    if (window.confirm('确定要清空所有存档吗？此操作不可恢复，包括自动存档。')) {
+    if (window.confirm('确定要清空所有存档吗？此操作不可恢复，包括自动存档。\n\n清空后将重新加载页面以重置游戏状态。')) {
+      // 禁用自动保存，防止在重载期间重新保存
+      onSetAutoSaveEnabled(false);
+      
       const success = saveService.clearAllSaves();
       if (success) {
-        showNotification('所有存档已清空');
-        loadSaveSlots();
+        showNotification('所有存档已清空，正在重新加载...');
+        // 延迟重载，让用户看到通知
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
       } else {
+        // 如果清空失败，重新启用自动保存
+        onSetAutoSaveEnabled(true);
         showNotification('清空失败，请重试');
       }
     }

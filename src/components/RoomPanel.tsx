@@ -20,6 +20,7 @@ const RoomPanel: React.FC<RoomPanelProps> = ({ rooms, resources, unlockedRooms, 
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(['all', '资源生产', '功能设施', '居住设施', '存储设施']));
+  const [showWorkerList, setShowWorkerList] = useState<string | null>(null);
 
   const getRelevantSkill = (roomType: Room['type'], resident: Resident): number => {
     const skillMapping = {
@@ -172,13 +173,21 @@ const RoomPanel: React.FC<RoomPanelProps> = ({ rooms, resources, unlockedRooms, 
           </h4>
         </div>
         <div className="room-type-list">
-          {roomList.map(room => (
-            <div key={room.id} className="room-card">
-              <div className="room-card-header">
-                <span className="room-name">
-                  Lv.{room.level} #{room.id.split('_').pop()?.slice(-4)}
-                </span>
-              </div>
+          {roomList.map(room => {
+            // 检查是否需要工人但没有工人
+            const needsWorkers = room.type !== 'quarters' && room.maxWorkers > 0;
+            const hasNoWorkers = needsWorkers && room.workers.length === 0;
+            const isUnderStaffed = needsWorkers && room.workers.length < room.maxWorkers;
+            
+            return (
+              <div key={room.id} className={`room-card ${hasNoWorkers ? 'no-workers' : ''} ${isUnderStaffed ? 'under-staffed' : ''}`}>
+                <div className="room-card-header">
+                  <span className="room-name">
+                    {hasNoWorkers && '⚠️ '}
+                    Lv.{room.level} #{room.id.split('_').pop()?.slice(-4)}
+                    {hasNoWorkers && ' - 无工人'}
+                  </span>
+                </div>
               
               <div className="room-card-content">
                 {!room.isBuilding ? (
@@ -188,8 +197,9 @@ const RoomPanel: React.FC<RoomPanelProps> = ({ rooms, resources, unlockedRooms, 
                     </div>
                   ) : (
                     <div className="room-workers-section">
-                      <div className="room-workers">
+                      <div className={`room-workers ${hasNoWorkers ? 'no-workers-warning' : ''}`}>
                         工人: {room.workers.length}/{room.maxWorkers}
+                        {hasNoWorkers && ' ⚠️'}
                       </div>
                       {room.workers.length > 0 && onUnassignWorker && (
                         <div className="workers-list">
@@ -209,38 +219,77 @@ const RoomPanel: React.FC<RoomPanelProps> = ({ rooms, resources, unlockedRooms, 
                         </div>
                       )}
                       {room.workers.length < room.maxWorkers && (
-                        <div className="assign-worker-section">
-                          <select
-                            className="worker-select"
-                            onChange={(e) => {
-                              if (e.target.value) {
-                                onAssignWorker(e.target.value, room.id);
-                                e.target.value = '';
-                              }
-                            }}
-                            defaultValue=""
+                        <div className={`assign-worker-section ${hasNoWorkers ? 'urgent' : ''}`}>
+                          {hasNoWorkers && (
+                            <div className="no-worker-alert">
+                              ⚠️ 此设施无人工作，生产已停止
+                            </div>
+                          )}
+                          <button
+                            className="add-worker-button"
+                            onClick={() => setShowWorkerList(showWorkerList === room.id ? null : room.id)}
                           >
-                            <option value="">选择空闲居民...</option>
-                            {residents
-                              .filter(resident => !resident.isWorking)
-                              .sort((a, b) => {
-                                const matchScoreA = getJobMatchScore(room, a);
-                                const matchScoreB = getJobMatchScore(room, b);
-                                return matchScoreB - matchScoreA;
-                              })
-                              .map(resident => {
-                                const skill = getRelevantSkill(room.type, resident);
-                                const matchScore = getJobMatchScore(room, resident);
-                                const isRecommended = skill >= 7;
-                                
-                                return (
-                                  <option key={resident.id} value={resident.id}>
-                                    {isRecommended ? '★ ' : ''}{resident.name} 
-                                    (技能:{skill} 匹配:{matchScore.toFixed(1)})
-                                  </option>
-                                );
-                              })}
-                          </select>
+                            {showWorkerList === room.id ? '隐藏居民列表' : `添加居民 (${room.maxWorkers - room.workers.length}个空位)`}
+                          </button>
+                          
+                          {showWorkerList === room.id && (
+                            <div className="worker-selection-list">
+                              {residents
+                                .sort((a, b) => {
+                                  const matchScoreA = getJobMatchScore(room, a);
+                                  const matchScoreB = getJobMatchScore(room, b);
+                                  const isIdleA = !a.isWorking;
+                                  const isIdleB = !b.isWorking;
+                                  
+                                  // 优先级：空闲 > 匹配度
+                                  if (isIdleA && !isIdleB) return -1; // A空闲，B在工作，A优先
+                                  if (!isIdleA && isIdleB) return 1;  // A在工作，B空闲，B优先
+                                  
+                                  // 同等状态下，按匹配度排序
+                                  return matchScoreB - matchScoreA;
+                                })
+                                .map(resident => {
+                                  const skill = getRelevantSkill(room.type, resident);
+                                  const matchScore = getJobMatchScore(room, resident);
+                                  const isRecommended = skill >= 7;
+                                  const isCurrentWorker = room.workers.includes(resident.id);
+                                  const isWorking = resident.isWorking;
+                                  const currentRoom = isWorking ? rooms.find(r => r.workers.includes(resident.id)) : null;
+                                  
+                                  if (isCurrentWorker) return null; // 已在当前设施工作的不显示
+                                  
+                                  return (
+                                    <div key={resident.id} className={`worker-option ${isRecommended ? 'recommended' : ''} ${isWorking ? 'working' : 'idle'}`}>
+                                      <div className="worker-info">
+                                        <span className="worker-name">
+                                          {!isWorking && '🔄 '}
+                                          {isRecommended ? '★ ' : ''}
+                                          {resident.name}
+                                          {!isWorking && ' (空闲)'}
+                                        </span>
+                                        <span className="worker-details">
+                                          技能:{skill} | 匹配:{matchScore.toFixed(1)}
+                                        </span>
+                                        {isWorking && currentRoom && (
+                                          <span className="current-job">
+                                            当前: {getRoomTypeName(currentRoom.type)}
+                                          </span>
+                                        )}
+                                      </div>
+                                      <button
+                                        className="assign-button"
+                                        onClick={() => {
+                                          onAssignWorker(resident.id, room.id);
+                                          setShowWorkerList(null);
+                                        }}
+                                      >
+                                        {isWorking ? '调动' : '分配'}
+                                      </button>
+                                    </div>
+                                  );
+                                })}
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
@@ -287,11 +336,16 @@ const RoomPanel: React.FC<RoomPanelProps> = ({ rooms, resources, unlockedRooms, 
                     <div className="upgrade-info">
                       <div className="upgrade-cost">
                         <span className="upgrade-label">升级至Lv.{room.level + 1}:</span>
-                        {Object.entries(room.upgradeCost).map(([resource, amount]) => (
-                          <span key={resource} className="cost-item">
-                            {getResourceIcon(resource)} {formatNumber(amount || 0)}
-                          </span>
-                        ))}
+                        {Object.entries(room.upgradeCost).map(([resource, amount]) => {
+                          const currentAmount = resources[resource as keyof Resources] || 0;
+                          const hasEnough = currentAmount >= (amount || 0);
+                          return (
+                            <span key={resource} className={`cost-item ${hasEnough ? 'sufficient' : 'insufficient'}`}>
+                              {getResourceIcon(resource)} {formatNumber(amount || 0)}
+                              <span className="current-amount">({formatNumber(currentAmount)})</span>
+                            </span>
+                          );
+                        })}
                       </div>
                       <div className="upgrade-benefits">
                         <span className="benefits-text">
@@ -311,7 +365,8 @@ const RoomPanel: React.FC<RoomPanelProps> = ({ rooms, resources, unlockedRooms, 
                 )}
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     );
@@ -328,37 +383,51 @@ const RoomPanel: React.FC<RoomPanelProps> = ({ rooms, resources, unlockedRooms, 
           const builtRooms = getBuiltRoomsByType(type);
           
           return (
-            <div key={type} className="room-card">
+            <div key={type} className={`room-card build-card ${builtRooms.length > 0 ? 'has-built' : 'not-built'} ${existingRooms.length > builtRooms.length ? 'has-building' : ''}`}>
               <div className="room-header">
                 <span className="room-icon">{icon}</span>
                 <div className="room-info">
-                  <h3>{name}</h3>
+                  <h3>
+                    {builtRooms.length > 0 && '✓ '}
+                    {name}
+                    {builtRooms.length === 0 && ' (未建造)'}
+                  </h3>
                   <p className="room-description">{description}</p>
                 </div>
               </div>
               
               <div className="room-stats">
-                <div className="existing-count">
-                  已建造: {builtRooms.length}
+                <div className={`existing-count ${builtRooms.length === 0 ? 'no-facilities' : ''}`}>
+                  {builtRooms.length === 0 ? (
+                    <span className="no-built-indicator">📝 尚未建造此设施</span>
+                  ) : (
+                    <span className="built-indicator">✓ 已建造: {builtRooms.length}</span>
+                  )}
                   {existingRooms.length > builtRooms.length && (
                     <span className="building-count"> (建造中: {existingRooms.length - builtRooms.length})</span>
                   )}
                 </div>
                 
                 <div className="room-cost">
-                  {Object.entries(cost).map(([resource, amount]) => (
-                    <span key={resource} className="cost-item">
-                      {getResourceIcon(resource)} {formatNumber(amount || 0)}
-                    </span>
-                  ))}
+                  {Object.entries(cost).map(([resource, amount]) => {
+                    const currentAmount = resources[resource as keyof Resources] || 0;
+                    const hasEnough = currentAmount >= (amount || 0);
+                    return (
+                      <span key={resource} className={`cost-item ${hasEnough ? 'sufficient' : 'insufficient'}`}>
+                        {getResourceIcon(resource)} {formatNumber(amount || 0)}
+                        <span className="current-amount">({formatNumber(currentAmount)})</span>
+                      </span>
+                    );
+                  })}
                 </div>
                 
                 <button
                   onClick={() => onBuildRoom(type)}
                   disabled={!canAfford}
-                  className="build-button"
+                  className={`build-button ${canAfford ? 'can-afford' : 'cannot-afford'}`}
+                  title={canAfford ? '点击建造' : '资源不足，无法建造'}
                 >
-                  建造
+                  {canAfford ? '建造' : '资源不足'}
                 </button>
               </div>
             </div>
@@ -444,6 +513,27 @@ const getResourceIcon = (resource: string) => {
     money: '💰',
   };
   return icons[resource as keyof typeof icons] || '';
+};
+
+const getRoomTypeName = (roomType: Room['type']): string => {
+  const roomNames = {
+    farm: '农场',
+    water_plant: '净水厂',
+    power_station: '发电站',
+    workshop: '工坊',
+    workbench: '工作台',
+    quarters: '宿舍',
+    medical: '医疗室',
+    basic_laboratory: '研究台',
+    laboratory: '高级实验室',
+    armory: '军械库',
+    training_room: '训练室',
+    warehouse: '仓库',
+    water_tank: '蓄水池',
+    power_bank: '储能站',
+    vault: '金库',
+  };
+  return roomNames[roomType] || roomType;
 };
 
 export default RoomPanel;

@@ -368,3 +368,59 @@
     text-align: center;
   }
 }
+
+/* 调试清空存档按钮 */
+.debug-clear-button {
+  background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid rgba(229, 62, 62, 0.3);
+}
+
+.debug-clear-button:hover {
+  background: linear-gradient(135deg, #c53030 0%, #9c2626 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.debug-clear-button:active {
+  transform: translateY(0);
+}
+
+/* 调整顶部状态栏布局 */
+.top-status-bar {
+  justify-content: space-between \!important;
+}
+
+
+/* 移动端调试按钮优化 */
+@media (max-width: 768px) {
+  .debug-clear-button {
+    font-size: 11px;
+    padding: 5px 8px;
+  }
+  
+  .top-status-bar {
+    flex-direction: row;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .debug-clear-button {
+    font-size: 10px;
+    padding: 4px 6px;
+  }
+  
+  .top-status-bar {
+    padding: 4px 8px;
+  }
+}

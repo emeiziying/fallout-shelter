@@ -12,6 +12,34 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+/* 建造页面设施状态区分 */
+.build-card.has-built {
+  background: rgba(76, 175, 80, 0.1);
+  border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.build-card.not-built {
+  background: rgba(158, 158, 158, 0.05);
+  border: 1px solid rgba(158, 158, 158, 0.2);
+  opacity: 0.8;
+}
+
+.build-card.has-building {
+  border-left: 4px solid #ff9800;
+  background: rgba(255, 152, 0, 0.08);
+}
+
+.build-card.has-built:hover {
+  background: rgba(76, 175, 80, 0.15);
+  border-color: rgba(76, 175, 80, 0.4);
+}
+
+.build-card.not-built:hover {
+  background: rgba(158, 158, 158, 0.1);
+  border-color: rgba(158, 158, 158, 0.3);
+  opacity: 1;
+}
+
 .room-header {
   display: flex;
   gap: 12px;
@@ -47,9 +75,26 @@
   color: #ccc;
 }
 
+.existing-count.no-facilities {
+  color: #999;
+}
+
+.no-built-indicator {
+  color: #999;
+  font-style: italic;
+  font-size: 13px;
+}
+
+.built-indicator {
+  color: #4CAF50;
+  font-weight: bold;
+  font-size: 13px;
+}
+
 .building-count {
   color: #ff9800;
   font-size: 12px;
+  font-weight: bold;
 }
 
 .room-cost {
@@ -64,11 +109,60 @@
   background: rgba(255, 255, 255, 0.1);
   padding: 2px 6px;
   border-radius: 3px;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.cost-item.sufficient {
+  background: rgba(76, 175, 80, 0.2);
+  border-color: rgba(76, 175, 80, 0.4);
+  color: #81C784;
+}
+
+.cost-item.insufficient {
+  background: rgba(244, 67, 54, 0.2);
+  border-color: rgba(244, 67, 54, 0.4);
+  color: #E57373;
+}
+
+.current-amount {
+  font-size: 10px;
+  opacity: 0.8;
+  margin-left: 2px;
 }
 
 .build-button {
   padding: 8px 16px;
   margin-top: 4px;
+  border: none;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.build-button.can-afford {
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  color: white;
+}
+
+.build-button.can-afford:hover {
+  background: linear-gradient(135deg, #45a049 0%, #3d8b40 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.build-button.cannot-afford {
+  background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+  color: white;
+  cursor: not-allowed;
+}
+
+.build-button.cannot-afford:hover {
+  background: linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%);
 }
 
 .existing-rooms h3 {
@@ -412,6 +506,192 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+/* 无工人设施的强调样式 */
+.room-card.no-workers {
+  border: 2px solid #ff9800;
+  background: rgba(255, 152, 0, 0.1);
+  animation: pulse-warning 2s infinite;
+}
+
+.room-card.no-workers:hover {
+  border-color: #f57c00;
+  background: rgba(255, 152, 0, 0.15);
+}
+
+/* 人手不足设施的轻微强调 */
+.room-card.under-staffed {
+  border-left: 4px solid #ffc107;
+  background: rgba(255, 193, 7, 0.05);
+}
+
+/* 警告动画 */
+@keyframes pulse-warning {
+  0% { border-color: #ff9800; }
+  50% { border-color: #f57c00; }
+  100% { border-color: #ff9800; }
+}
+
+/* 工人状态显示 */
+.room-workers.no-workers-warning {
+  color: #ff9800;
+  font-weight: bold;
+}
+
+/* 紧急分配区域 */
+.assign-worker-section.urgent {
+  background: rgba(255, 152, 0, 0.1);
+  border: 1px solid rgba(255, 152, 0, 0.3);
+  border-radius: 4px;
+  padding: 8px;
+}
+
+/* 无工人警告信息 */
+.no-worker-alert {
+  background: rgba(255, 152, 0, 0.2);
+  color: #ff9800;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: bold;
+  margin-bottom: 6px;
+  text-align: center;
+  border: 1px solid rgba(255, 152, 0, 0.4);
+}
+
+/* 添加居民按钮 */
+.add-worker-button {
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+  margin-top: 4px;
+}
+
+.add-worker-button:hover {
+  background: linear-gradient(135deg, #45a049 0%, #3d8b40 100%);
+  transform: translateY(-1px);
+}
+
+/* 居民选择列表 */
+.worker-selection-list {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 8px;
+  margin-top: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+/* 居民选项 */
+.worker-option {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 8px;
+  margin-bottom: 4px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.worker-option:last-child {
+  margin-bottom: 0;
+}
+
+.worker-option:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+/* 推荐居民 */
+.worker-option.recommended {
+  background: rgba(76, 175, 80, 0.1);
+  border-color: rgba(76, 175, 80, 0.3);
+}
+
+.worker-option.recommended:hover {
+  background: rgba(76, 175, 80, 0.15);
+}
+
+/* 工作状态 */
+.worker-option.working {
+  background: rgba(255, 193, 7, 0.1);
+  border-color: rgba(255, 193, 7, 0.3);
+}
+
+.worker-option.idle {
+  background: rgba(76, 175, 80, 0.08);
+  border-color: rgba(76, 175, 80, 0.2);
+}
+
+.worker-option.idle:hover {
+  background: rgba(76, 175, 80, 0.15);
+  border-color: rgba(76, 175, 80, 0.3);
+}
+
+/* 空闲居民的特殊样式 */
+.worker-option.idle .worker-name {
+  color: #81C784;
+  font-weight: bold;
+}
+
+/* 居民信息 */
+.worker-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.worker-name {
+  font-weight: bold;
+  color: #fff;
+  font-size: 12px;
+}
+
+.worker-details {
+  font-size: 10px;
+  color: #ccc;
+}
+
+.current-job {
+  font-size: 10px;
+  color: #ffc107;
+  font-style: italic;
+}
+
+/* 分配按钮 */
+.assign-button {
+  background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+  color: white;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 3px;
+  font-size: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 40px;
+}
+
+.assign-button:hover {
+  background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
+  transform: translateY(-1px);
+}
+
+.worker-option.working .assign-button {
+  background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+}
+
+.worker-option.working .assign-button:hover {
+  background: linear-gradient(135deg, #f57c00 0%, #ef6c00 100%);
+}
+
 .room-card-header {
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   padding-bottom: 8px;
@@ -616,5 +896,35 @@
   .worker-select {
     font-size: 11px;
     padding: 3px 6px;
+  }
+}
+
+/* 新增的移动端样式 */
+@media (max-width: 480px) {
+  .add-worker-button {
+    font-size: 11px;
+    padding: 8px 10px;
+  }
+  
+  .worker-selection-list {
+    max-height: 150px;
+    padding: 6px;
+  }
+  
+  .worker-option {
+    padding: 4px 6px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+  }
+  
+  .worker-info {
+    margin-bottom: 4px;
+  }
+  
+  .assign-button {
+    width: 100%;
+    padding: 6px;
+    font-size: 11px;
   }
 }

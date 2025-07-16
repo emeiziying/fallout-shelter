@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useGameState } from './hooks/useGameState';
+import { saveService } from './services/saveService';
 import ResourcePanel from './components/ResourcePanel';
 import RoomPanel from './components/RoomPanel';
 import ResidentPanel from './components/ResidentPanel';
@@ -25,7 +26,8 @@ function App() {
     canStartResearch,
     saveGame,
     loadGame,
-    autoSaveCountdown
+    autoSaveCountdown,
+    setAutoSaveEnabled
   } = useGameState();
   const [activeTab, setActiveTab] = useState<'overview' | 'rooms' | 'residents' | 'technology' | 'save'>('overview');
 
@@ -40,6 +42,18 @@ function App() {
     buildRoom(roomType);
   };
 
+  // 调试用：清空存档并重载
+  const handleDebugClearSave = () => {
+    if (window.confirm('调试模式：确定要清空所有存档并重载页面吗？')) {
+      // 禁用自动保存
+      setAutoSaveEnabled(false);
+      // 清空存档
+      saveService.clearAllSaves();
+      // 重载页面
+      window.location.reload();
+    }
+  };
+
 
   return (
     <div className="App">
@@ -48,6 +62,13 @@ function App() {
           <span className="autosave-text">自动保存</span>
           <span className="autosave-countdown">{autoSaveCountdown}s</span>
         </div>
+        <button 
+          className="debug-clear-button"
+          onClick={handleDebugClearSave}
+          title="调试用：清空所有存档并重载"
+        >
+          🗑️ 清空存档
+        </button>
       </div>
 
       {notification && (
@@ -143,6 +164,7 @@ function App() {
           <SavePanel
             onSaveGame={saveGame}
             onLoadGame={loadGame}
+            onSetAutoSaveEnabled={setAutoSaveEnabled}
           />
         )}
       </main>

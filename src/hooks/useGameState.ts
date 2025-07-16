@@ -14,6 +14,9 @@ export const useGameState = () => {
   // 使用ref保存最新的游戏状态
   const gameStateRef = useRef(gameState);
   gameStateRef.current = gameState;
+  
+  // 自动保存开关，用于在清空存档时禁用自动保存
+  const autoSaveEnabledRef = useRef(true);
 
   const updateResources = useCallback((deltaTime: number) => {
     setGameState(prevState => {
@@ -520,6 +523,12 @@ export const useGameState = () => {
   useEffect(() => {
     console.log('设置自动保存定时器');
     const autoSaveInterval = setInterval(() => {
+      // 检查自动保存是否启用
+      if (!autoSaveEnabledRef.current) {
+        console.log('自动保存已禁用，跳过此次保存');
+        return;
+      }
+      
       console.log('执行自动保存，当前游戏状态:', gameStateRef.current);
       // 使用ref获取最新的游戏状态
       const success = saveService.autoSave(gameStateRef.current);
@@ -537,6 +546,12 @@ export const useGameState = () => {
     };
   }, []); // 移除gameState依赖
 
+  // 禁用/启用自动保存的函数
+  const setAutoSaveEnabled = useCallback((enabled: boolean) => {
+    autoSaveEnabledRef.current = enabled;
+    console.log(`自动保存${enabled ? '启用' : '禁用'}`);
+  }, []);
+
   return {
     gameState,
     buildRoom,
@@ -553,6 +568,7 @@ export const useGameState = () => {
     saveGame,
     loadGame,
     autoSaveCountdown,
+    setAutoSaveEnabled,
   };
 };
 

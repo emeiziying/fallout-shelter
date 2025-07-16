@@ -1,122 +1,164 @@
-# 末日避难所 - React Demo
+# Fallout Shelter
 
-基于React + TypeScript构建的末日避难所放置类游戏演示版本。
+A React + TypeScript idle/placement game where players manage an underground bunker, assign residents to facilities, and produce resources in a post-apocalyptic world.
 
-## 游戏特色
+🎮 **[Live Demo](https://emeiziying.github.io/fallout-shelter/)**
 
-- 🏠 **避难所建设**: 建造各种功能设施，从农场到实验室
-- 👥 **居民管理**: 招募居民，分配工作，提升技能
-- ⚡ **资源生产**: 自动化生产系统，合理配置资源
-- 📊 **实时统计**: 查看避难所运营状况和居民数据
-- 🎮 **放置玩法**: 离线也能持续发展
+## Features
 
-## 已实现功能
+- 🏠 **Facility Construction**: Build 9 different facility types from farms to research labs
+- 👥 **Resident Management**: Recruit residents, assign jobs, and develop their skills
+- ⚡ **Resource Production**: Automated production system with real-time calculations
+- 📊 **Game Statistics**: Monitor shelter operations and resident data
+- 💾 **Save System**: Auto-save with manual save/load functionality
+- 🔬 **Technology Research**: Basic research system for advancing your shelter
+- 📱 **Mobile Responsive**: Optimized for both desktop and mobile devices
 
-### 核心系统
-- ✅ 资源管理系统 (食物、水、电力、材料、组件、化学品)
-- ✅ 设施建造系统 (9种不同类型房间)
-- ✅ 居民管理系统 (技能、心情、健康、工作分配)
-- ✅ 生产计算系统 (效率计算、自动生产)
-- ✅ 实时游戏循环 (每秒更新资源)
+## Game Mechanics
 
-### 用户界面
-- ✅ 响应式设计，支持移动端
-- ✅ 分标签页管理不同功能
-- ✅ 实时资源显示和生产速率
-- ✅ 直观的居民技能可视化
-- ✅ 设施状态和工人分配
+### Resource System
+- **8 Resource Types**: Food, Water, Power, Materials, Components, Chemicals, Money, Research
+- **Production**: Resources are automatically produced every second based on facility efficiency
+- **Consumption**: Residents consume food (0.1/sec) and water (0.08/sec) per person
+- **Storage Limits**: Based on warehouse and storage facility counts
 
-### 房间类型
-- 🌾 **农场**: 生产食物
-- 💧 **净水厂**: 净化水源
-- ⚡ **发电站**: 提供电力
-- 🔧 **工坊**: 制造材料
-- 🏠 **宿舍**: 居民休息
-- 🏥 **医疗室**: 制造药物
-- 🧪 **实验室**: 研发组件
-- 🔫 **军械库**: 制造武器
-- 💪 **训练室**: 技能训练
+### Facility Management
+- **9 Facility Types**: Farm, Water Treatment, Power Plant, Workshop, Quarters, Medical Bay, Laboratory, Armory, Training Room
+- **Construction**: Requires available workers (residents without room assignments)
+- **Upgrading**: Individual facilities can be upgraded with increasing costs
+- **Worker Assignment**: Direct assignment via dropdown interface
 
-## 运行项目
+### Resident System
+- **6 Skill Types**: Engineering, Medical, Combat, Exploration, Research, Management
+- **Status Tracking**: Health, happiness, age, and work assignments
+- **Efficiency**: Worker skills directly impact production rates
+- **Recruitment**: Costs scale with existing population
 
-### 安装依赖
+## Quick Start
+
+### Prerequisites
+- Node.js 16+ 
+- npm or pnpm
+
+### Installation
+
 ```bash
+# Clone the repository
+git clone https://github.com/username/fallout-shelter.git
+cd fallout-shelter
+
+# Install dependencies
 npm install
-```
 
-### 启动开发服务器
-```bash
+# Start development server
 npm start
 ```
 
-项目将在 http://localhost:3000 启动
+The game will be available at `http://localhost:3000`
 
-### 构建生产版本
+### Build for Production
+
 ```bash
 npm run build
 ```
 
-## 项目结构
+## Project Architecture
 
+### Core Components
+- **App.tsx**: Main container with tab navigation and notification system
+- **ResourcePanel**: Real-time resource display and production rates
+- **RoomPanel**: Facility construction and worker management
+- **ResidentPanel**: Resident recruitment and job assignment
+- **TechnologyPanel**: Research system interface
+- **GameStats**: Comprehensive shelter overview
+
+### State Management
+- **useGameState.ts**: Core game logic with 1-second update cycle
+- **gameLogic.ts**: Production, consumption, and efficiency calculations
+- **saveService.ts**: Local storage save/load functionality
+
+### Data Structure
 ```
 src/
-├── components/          # React组件
-│   ├── ResourcePanel.tsx    # 资源面板
-│   ├── RoomPanel.tsx        # 设施建造面板
-│   ├── ResidentPanel.tsx    # 居民管理面板
-│   └── GameStats.tsx        # 游戏统计面板
-├── hooks/              # React Hooks
-│   └── useGameState.ts      # 游戏状态管理
-├── types/              # TypeScript类型定义
-│   └── index.ts            # 游戏数据类型
-├── utils/              # 工具函数
-│   └── gameLogic.ts        # 游戏逻辑计算
-├── data/               # 游戏数据
-│   └── initialState.ts     # 初始游戏状态
-├── App.tsx             # 主应用组件
-├── App.css             # 应用样式
-└── index.tsx           # 应用入口
+├── components/          # React components
+├── hooks/              # Custom hooks (useGameState)
+├── types/              # TypeScript interfaces
+├── utils/              # Game logic utilities
+├── data/               # Initial game state
+└── services/           # Save/load services
 ```
 
-## 游戏机制
+## Game Flow
 
-### 资源系统
-- **基础资源**: 食物、水、电力维持基本运转
-- **高级资源**: 材料、组件、化学品用于建造和研发
-- **自动生产**: 分配工人到设施后自动产出资源
+1. **Resource Production**: Every second, facilities produce resources based on worker efficiency
+2. **Resource Consumption**: Residents automatically consume food and water
+3. **Construction**: Assign idle residents to build new facilities
+4. **Worker Assignment**: Assign residents to facilities for optimal production
+5. **Research**: Use research points to unlock new technologies
+6. **Expansion**: Build more facilities and recruit more residents
 
-### 效率计算
-- 工人技能等级影响生产效率
-- 居民心情和健康状态影响工作表现
-- 设施工人数量与容量比例影响整体效率
+## Development
 
-### 居民系统
-- 6种技能类型：工程、医疗、战斗、探索、科研、管理
-- 个人属性：年龄、健康、心情
-- 工作分配：根据技能特长分配最合适的岗位
+### Available Scripts
 
-## 技术栈
+- `npm start` - Start development server
+- `npm run build` - Build for production  
+- `npm test` - Run test suite
 
-- **React 18**: 用户界面构建
-- **TypeScript**: 类型安全开发
-- **CSS-in-JS**: 组件级样式管理
-- **React Hooks**: 状态管理和副作用处理
+### Key Files
 
-## 后续开发计划
+- `src/hooks/useGameState.ts` - Main game state and logic
+- `src/utils/gameLogic.ts` - Production and efficiency calculations
+- `src/types/index.ts` - TypeScript type definitions
+- `src/data/initialState.ts` - Starting game configuration
 
-- [ ] 科技研发树系统
-- [ ] 地面探索功能
-- [ ] 威胁和防御机制
-- [ ] 离线收益计算
-- [ ] 数据持久化
-- [ ] 更多房间类型和升级
-- [ ] 居民关系和事件系统
-- [ ] 成就系统
+### Code Style
+- TypeScript for type safety
+- Immutable state updates
+- Component-level CSS modules
+- Mobile-first responsive design
 
-## 贡献
+## Technology Stack
 
-欢迎提交Issue和Pull Request来改进游戏！
+- **Frontend**: React 18, TypeScript
+- **Styling**: CSS-in-JS, Responsive design
+- **State Management**: React Hooks (useState, useEffect)
+- **Build Tool**: Create React App
+- **Testing**: Jest, React Testing Library
 
-## 许可证
+## Future Roadmap
 
-MIT License
+- [ ] Extended technology tree
+- [ ] Surface exploration missions
+- [ ] Threat and defense systems
+- [ ] Offline progress calculation
+- [ ] Achievement system
+- [ ] Resident relationships and events
+- [ ] Additional facility types
+- [ ] Multiplayer features
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Acknowledgments
+
+- Inspired by Bethesda's Fallout Shelter
+- Built with React and TypeScript
+- UI design inspired by post-apocalyptic aesthetics
+
+## Maintenance Note
+
+> **Note**: This project includes bilingual README files:
+> - `README.md` - English version
+> - `README-zh.md` - Chinese version
+> 
+> When updating project information, please update both versions to keep them synchronized.
